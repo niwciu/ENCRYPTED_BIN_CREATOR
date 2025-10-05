@@ -1,4 +1,4 @@
-"""Moduł obsługi argumentów CLI i pliku requirements."""
+"""Module for handling CLI arguments and requirements file."""
 
 import argparse
 import sys
@@ -8,18 +8,20 @@ from bin_creator.cli.utils import parse_int, parse_key, find_key_in_file
 
 
 def load_requirements_file(path):
-    """Wczytuje i parsuje plik z argumentami (np. params.txt)."""
+    """Loads and parses a requirements file (e.g., params.txt)."""
     try:
         with open(path, "r", encoding="utf-8") as f:
             content = f.read()
         args = shlex.split(content, comments=True)
     except Exception as e:
-        sys.exit(f"Błąd odczytu pliku requirements: {e}")
+        sys.exit(f"Error reading requirements file: {e}")
     return args
 
 
 def merge_args(file_args, cli_args):
-    """Łączy argumenty z pliku i CLI. W przypadku konfliktu z różnymi wartościami -> błąd."""
+    """Merges arguments from the requirements file and CLI.
+    If the same flag appears with different values, the program exits with an error.
+    """
 
     def args_to_dict(args_list):
         d = {}
@@ -30,7 +32,7 @@ def merge_args(file_args, cli_args):
                 d[key] = None
             else:
                 if key is None:
-                    sys.exit(f"Błąd: niepoprawna składnia parametrów ({arg})")
+                    sys.exit(f"Error: invalid parameter syntax ({arg})")
                 d[key] = arg
                 key = None
         return d
@@ -41,9 +43,9 @@ def merge_args(file_args, cli_args):
     for flag in file_dict:
         if flag in cli_dict and file_dict[flag] != cli_dict[flag]:
             sys.exit(
-                f"Błąd: flaga '{flag}' występuje w pliku i terminalu z różnymi wartościami:\n"
-                f" - z pliku:     {file_dict[flag]}\n"
-                f" - z terminala: {cli_dict[flag]}"
+                f"Error: flag '{flag}' appears in both file and CLI with different values:\n"
+                f" - from file:     {file_dict[flag]}\n"
+                f" - from terminal: {cli_dict[flag]}"
             )
 
     merged = file_args + [item for item in cli_args if item not in file_args]
@@ -51,10 +53,10 @@ def merge_args(file_args, cli_args):
 
 
 def get_parsed_args():
-    """Zwraca gotowy obiekt argparse.Namespace z parsowanymi i zweryfikowanymi wartościami."""
+    """Returns a fully parsed and validated argparse.Namespace object."""
     base_parser = argparse.ArgumentParser(add_help=False)
     base_parser.add_argument(
-        "-r", "--requirements", help="Plik z parametrami wejściowymi (.txt)"
+        "-r", "--requirements", help="Input parameters file (.txt)"
     )
 
     pre_args, remaining = base_parser.parse_known_args()
@@ -67,73 +69,73 @@ def get_parsed_args():
 
     parser = argparse.ArgumentParser(
         parents=[base_parser],
-        description="Skrypt do obsługi plików binarnych z parametrami urządzenia.",
+        description="Tool for handling binary files with device parameters.",
     )
 
     parser.add_argument(
-        "-i", "--input", required=True, help="Ścieżka do pliku wejściowego .bin"
+        "-i", "--input", required=True, help="Path to input .bin file"
     )
     parser.add_argument(
-        "-o", "--output", required=True, help="Ścieżka do pliku wyjściowego .bin"
+        "-o", "--output", required=True, help="Path to output .bin file"
     )
     parser.add_argument(
-        "-d", "--device-id", required=True, help="Device ID (uint32, dec lub hex)"
+        "-d", "--device-id", required=True, help="Device ID (uint32, decimal or hex)"
     )
     parser.add_argument(
         "-b",
         "--bootloader-id",
         required=True,
-        help="Bootloader ID (uint16, dec lub hex)",
+        help="Bootloader ID (uint16, decimal or hex)",
     )
 
-    # zamiast bezpośredniego parser.add_argument("-k"...) dodajemy mutual exclusive group
+    # Use mutually exclusive group for key and key file
     key_group = parser.add_mutually_exclusive_group(required=True)
     key_group.add_argument(
-        "-k", "--key", help="Klucz 16 bajtów w hex (jeśli podajesz bezpośrednio)"
+        "-k", "--key", help="16-byte key in hex (if provided directly)"
     )
     key_group.add_argument(
         "-K",
         "--key-file",
-        help="Plik z mapą kluczy: device_id -> key (użyj gdy chcesz wskazać katalog z kluczami)",
+        help="File with key map: device_id -> key (use when specifying a key directory)",
     )
 
     parser.add_argument(
         "-v",
         "--app-version",
         required=True,
-        help="Wersja aplikacji (uint16, dec lub hex)",
+        help="Application version (uint16, decimal or hex)",
     )
     parser.add_argument(
         "-p",
         "--prev-app-version",
         required=True,
-        help="Poprzednia wersja aplikacji (uint16, dec lub hex)",
+        help="Previous application version (uint16, decimal or hex)",
     )
     parser.add_argument(
         "-l",
         "--page-length",
         default=2048,
         type=int,
-        help="Długość strony (domyślnie 2048)",
+        help="Page length (default: 2048)",
     )
 
     args = parser.parse_args(merged_args)
 
-    # Walidacja ścieżek
+    # Validate file paths
     validate_file_paths(args.input, args.output)
 
-    # Parsowanie liczb (najpierw device id, bo możemy go potrzebować do wyszukania klucza)
+    # Parse integers (device_id first — may be needed to locate the key)
     args.device_id = parse_int(args.device_id, "Device ID", 64)
     args.bootloader_id = parse_int(args.bootloader_id, "Bootloader ID", 32)
     args.app_version = parse_int(args.app_version, "App version", 32)
     args.prev_app_version = parse_int(args.prev_app_version, "Previous app version", 32)
 
-    # Parsowanie klucza: jeśli podano --key-file, wyszukaj klucz dla device_id; w przeciwnym wypadku parsuj --key
+    # Parse the key: use --key-file if provided, otherwise parse --key
     if getattr(args, "key_file", None):
-        # find_key_in_file zwraca bytes lub robi sys.exit
+        # find_key_in_file returns bytes or calls sys.exit on failure
         args.key = find_key_in_file(args.key_file, args.device_id)
     else:
-        # parse_key zwraca bytes lub robi sys.exit
+        # parse_key returns bytes or calls sys.exit on failure
         args.key = parse_key(args.key)
 
     return args

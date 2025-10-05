@@ -6,16 +6,16 @@ from Crypto.Random import get_random_bytes
 
 
 def pad_bytes(data: bytes, page_length: int) -> bytes:
-    """Dopasowuje długość danych do wielokrotności page_length zerami."""
+    """Pads the data with zeros to make its length a multiple of page_length."""
     pad_len = (page_length - len(data) % page_length) % page_length
     return data + b"\x00" * pad_len
 
 
 def encrypt_aes_cbc(input_bytes: bytes, key: bytes, iv: bytes) -> bytes:
-    """Szyfruje dane AES-128 CBC, tak jak Tiny-AES-C."""
+    """Encrypts data using AES-128 CBC, compatible with Tiny-AES-C."""
     assert len(key) == 16
     assert len(iv) == 16
-    assert len(input_bytes) % 16 == 0  # padding musi zapewnić wielokrotność 16
+    assert len(input_bytes) % 16 == 0  # padding must ensure multiple of 16
 
     cipher = AES.new(key, AES.MODE_CBC, iv)
     return cipher.encrypt(input_bytes)
@@ -31,31 +31,31 @@ def generate_bin(
     key: bytes,
     page_length: int = 2048,
 ):
-    # 1. Wczytaj cały plik
+    # 1. Read the entire input file
     if not os.path.isfile(input_path):
-        raise FileNotFoundError(f"Plik '{input_path}' nie istnieje.")
+        raise FileNotFoundError(f"Input file '{input_path}' does not exist.")
 
     with open(input_path, "rb") as f:
         input_bytes = f.read()
 
-    # 2. Padding do wielokrotności page_length
+    # 2. Pad to a multiple of page_length
     input_bytes = pad_bytes(input_bytes, page_length)
 
-    # 3. Generuj losowy IV (16 bajtów)
+    # 3. Generate random IV (16 bytes)
     iv = get_random_bytes(16)
 
-    # 4. Szyfrujemy AES-128 CBC
+    # 4. Encrypt with AES-128 CBC
     enc_bytes = encrypt_aes_cbc(input_bytes, key, iv)
 
-    # 5. Oblicz CRC32 całego wejścia (po padzie)
+    # 5. Compute CRC32 of the entire input (after padding)
     crc32_val = zlib.crc32(input_bytes) & 0xFFFFFFFF
 
-    # 6. Zapis do pliku wyjściowego
+    # 6. Write to the output file
     with open(output_path, "wb") as f:
         # Little Endian
         f.write(struct.pack("<I", bootloader_id))
-        f.write(struct.pack("<I", (product_id >> 32) & 0xFFFFFFFF))  # MSB product_id
-        f.write(struct.pack("<I", product_id & 0xFFFFFFFF))  # LSB product_id
+        f.write(struct.pack("<I", (product_id >> 32) & 0xFFFFFFFF))  # MSB of product_id
+        f.write(struct.pack("<I", product_id & 0xFFFFFFFF))           # LSB of product_id
         f.write(struct.pack("<I", app_version))
         f.write(struct.pack("<I", prev_app_version))
         num_pages = len(input_bytes) // page_length

@@ -1,18 +1,18 @@
-"""Funkcje walidujące ścieżki plików i katalogi."""
+"""Functions for validating file paths and directories."""
 
 import os
 import sys
 
 
 def validate_file_paths(input_path, output_path):
-    """Sprawdza istnienie pliku wejściowego i poprawność ścieżki wyjściowej."""
+    """Checks the existence of the input file and validity of the output path."""
     if not os.path.isfile(input_path):
-        sys.exit(f"Błąd: plik wejściowy '{input_path}' nie istnieje.")
+        sys.exit(f"Error: input file '{input_path}' does not exist.")
     if not input_path.lower().endswith(".bin"):
-        sys.exit("Błąd: plik wejściowy musi mieć rozszerzenie '.bin'.")
+        sys.exit("Error: input file must have the '.bin' extension.")
 
     output_dir = os.path.dirname(output_path) or "."
     if not os.path.exists(output_dir):
-        sys.exit(f"Błąd: katalog wyjściowy '{output_dir}' nie istnieje.")
+        sys.exit(f"Error: output directory '{output_dir}' does not exist.")
     if not output_path.lower().endswith(".bin"):
-        sys.exit("Błąd: plik wyjściowy musi mieć rozszerzenie '.bin'.")
+        sys.exit("Error: output file must have the '.bin' extension.")

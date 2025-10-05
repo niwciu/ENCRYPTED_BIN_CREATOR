@@ -8,9 +8,8 @@ import os
 # load_requirements_file
 # -----------------------
 
-
 def test_load_requirements_file_success(tmp_path):
-    """Poprawne wczytanie pliku requirements"""
+    """Correctly loads a requirements file"""
     path = tmp_path / "params.txt"
     path.write_text("-i input.bin -o output.bin")
     args = parser.load_requirements_file(str(path))
@@ -18,23 +17,23 @@ def test_load_requirements_file_success(tmp_path):
 
 
 def test_load_requirements_file_missing(tmp_path):
-    """Nieistniejący plik -> SystemExit"""
+    """Missing file -> SystemExit"""
     bad_file = tmp_path / "does_not_exist.txt"
     with pytest.raises(SystemExit) as e:
         parser.load_requirements_file(str(bad_file))
-    assert "Błąd odczytu pliku requirements" in str(e.value)
+    assert "Error reading requirements file" in str(e.value)
 
 
 def test_load_requirements_file_open_exception(monkeypatch):
-    """Błąd przy otwieraniu pliku (np. brak uprawnień)"""
+    """Error opening file (e.g., permissions)"""
     with patch("builtins.open", side_effect=OSError("mocked error")):
         with pytest.raises(SystemExit) as e:
             parser.load_requirements_file("dummy.txt")
-        assert "Błąd odczytu pliku requirements" in str(e.value)
+        assert "Error reading requirements file" in str(e.value)
 
 
 def test_load_requirements_file_shlex_exception(tmp_path, monkeypatch):
-    """Błąd parsowania w shlex.split"""
+    """shlex.split parsing error"""
     path = tmp_path / "params.txt"
     path.write_text("-i input.bin -o output.bin")
     monkeypatch.setattr(
@@ -42,16 +41,15 @@ def test_load_requirements_file_shlex_exception(tmp_path, monkeypatch):
     )
     with pytest.raises(SystemExit) as e:
         parser.load_requirements_file(str(path))
-    assert "Błąd odczytu pliku requirements" in str(e.value)
+    assert "Error reading requirements file" in str(e.value)
 
 
 # -----------------------
 # merge_args
 # -----------------------
 
-
 def test_merge_args_basic():
-    """Poprawne połączenie argumentów bez konfliktów"""
+    """Correctly merges arguments without conflicts"""
     file_args = ["-i", "file1.bin"]
     cli_args = ["-o", "file2.bin"]
     merged = parser.merge_args(file_args, cli_args)
@@ -59,29 +57,26 @@ def test_merge_args_basic():
 
 
 def test_merge_args_conflict():
-    """Ten sam klucz z różnymi wartościami -> błąd"""
+    """Same flag with different values -> error"""
     file_args = ["-i", "file1.bin"]
     cli_args = ["-i", "file2.bin"]
     with pytest.raises(SystemExit) as e:
         parser.merge_args(file_args, cli_args)
-    assert "flaga '-i' występuje w pliku i terminalu z różnymi wartościami" in str(
-        e.value
-    )
+    assert "appears in both file and CLI" in str(e.value)
 
 
 def test_merge_args_bad_syntax():
-    """Brak flagi przed wartością -> błąd składni"""
+    """Missing flag before value -> syntax error"""
     file_args = ["value_without_flag"]
     cli_args = []
     with pytest.raises(SystemExit) as e:
         parser.merge_args(file_args, cli_args)
-    assert "niepoprawna składnia parametrów" in str(e.value)
+    assert "invalid parameter syntax" in str(e.value)
 
 
 # -----------------------
 # get_parsed_args
 # -----------------------
-
 
 def make_bin_file(tmp_path, name="in.bin"):
     f = tmp_path / name
@@ -90,7 +85,7 @@ def make_bin_file(tmp_path, name="in.bin"):
 
 
 def test_get_parsed_args_with_key(monkeypatch, tmp_path):
-    """Podanie bezpośredniego klucza przez -k"""
+    """Provide direct 16-byte key via -k"""
     inp = make_bin_file(tmp_path, "input.bin")
     out = tmp_path / "output.bin"
     argv = [
@@ -118,7 +113,7 @@ def test_get_parsed_args_with_key(monkeypatch, tmp_path):
 
 
 def test_get_parsed_args_with_key_file(monkeypatch, tmp_path):
-    """Podanie klucza przez -K i wyszukiwanie w pliku"""
+    """Provide key via -K and search in key file"""
     inp = make_bin_file(tmp_path, "input.bin")
     out = tmp_path / "output.bin"
     key_file = tmp_path / "keys.txt"
@@ -147,7 +142,7 @@ def test_get_parsed_args_with_key_file(monkeypatch, tmp_path):
 
 
 def test_get_parsed_args_with_requirements(monkeypatch, tmp_path):
-    """Pokrywa ścieżkę if pre_args.requirements"""
+    """Covers the if pre_args.requirements path"""
     inp = make_bin_file(tmp_path)
     out = tmp_path / "output.bin"
     req_file = tmp_path / "params.txt"
@@ -163,7 +158,7 @@ def test_get_parsed_args_with_requirements(monkeypatch, tmp_path):
 
 
 def test_get_parsed_args_invalid_input(monkeypatch, tmp_path):
-    """Nieistniejący plik wejściowy"""
+    """Non-existent input file"""
     inp = tmp_path / "missing.bin"
     out = tmp_path / "output.bin"
     argv = [
@@ -185,11 +180,11 @@ def test_get_parsed_args_invalid_input(monkeypatch, tmp_path):
     monkeypatch.setattr(sys, "argv", ["prog"] + argv)
     with pytest.raises(SystemExit) as e:
         parser.get_parsed_args()
-    assert "plik wejściowy" in str(e.value)
+    assert "input file" in str(e.value)
 
 
 def test_get_parsed_args_invalid_output(monkeypatch, tmp_path):
-    """Nieistniejący katalog dla pliku wyjściowego"""
+    """Non-existent output directory"""
     inp = make_bin_file(tmp_path)
     out = tmp_path / "no_dir" / "out.bin"
     argv = [
@@ -211,11 +206,11 @@ def test_get_parsed_args_invalid_output(monkeypatch, tmp_path):
     monkeypatch.setattr(sys, "argv", ["prog"] + argv)
     with pytest.raises(SystemExit) as e:
         parser.get_parsed_args()
-    assert "katalog wyjściowy" in str(e.value)
+    assert "output directory" in str(e.value)
 
 
 def test_get_parsed_args_invalid_number(monkeypatch, tmp_path):
-    """Niepoprawny Device ID"""
+    """Invalid Device ID"""
     inp = make_bin_file(tmp_path)
     out = tmp_path / "output.bin"
     argv = [
@@ -241,7 +236,7 @@ def test_get_parsed_args_invalid_number(monkeypatch, tmp_path):
 
 
 def test_get_parsed_args_invalid_key(monkeypatch, tmp_path):
-    """Niepoprawny klucz (za krótki)"""
+    """Invalid key (too short)"""
     inp = make_bin_file(tmp_path)
     out = tmp_path / "output.bin"
     argv = [
@@ -266,7 +261,7 @@ def test_get_parsed_args_invalid_key(monkeypatch, tmp_path):
 
 
 def test_get_parsed_args_missing_key(monkeypatch, tmp_path):
-    """Brak zarówno -k jak i -K"""
+    """Missing both -k and -K"""
     inp = make_bin_file(tmp_path)
     out = tmp_path / "output.bin"
     argv = [

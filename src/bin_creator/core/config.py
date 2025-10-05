@@ -1,8 +1,8 @@
-"""Moduł konfiguracji – przechowuje i drukuje parametry wejściowe."""
+"""Configuration module – stores and prints input parameters."""
 
 
 class Config:
-    """Reprezentuje zestaw parametrów wejściowych skryptu."""
+    """Represents the set of input parameters for the script."""
 
     def __init__(
         self,
@@ -26,7 +26,7 @@ class Config:
 
     @classmethod
     def from_args(cls, args):
-        """Tworzy obiekt Config z parsowanych argumentów argparse."""
+        """Creates a Config object from parsed argparse arguments."""
         return cls(
             args.input,
             args.output,
@@ -39,14 +39,14 @@ class Config:
         )
 
     def print_summary(self):
-        """Wypisuje zestaw aktualnych parametrów konfiguracyjnych."""
+        """Prints the current configuration parameters."""
         print(f" Input file:          {self.input_path}")
         print(f" Output file:         {self.output_path}")
         print(f" Device ID:           {self.device_id} (0x{self.device_id:X})")
         print(f" Bootloader ID:       {self.bootloader_id} (0x{self.bootloader_id:X})")
         print(f" App version:         {self.app_version} (0x{self.app_version:X})")
         print(
-            f" Previous app ver:    {self.prev_app_version} (0x{self.prev_app_version:X})"
+            f" Previous app version:{self.prev_app_version} (0x{self.prev_app_version:X})"
         )
         print(f" Page length:         {self.page_length}")
         print(f" Key (hex):           {' '.join(f'{b:02X}' for b in self.key)}")

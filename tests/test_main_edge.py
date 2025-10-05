@@ -5,6 +5,7 @@ from bin_creator.__main__ import main
 
 
 def test_main_handles_missing_input_file(tmp_path, monkeypatch):
+    """Main exits when input file does not exist"""
     output_file = tmp_path / "out.bin"
     missing_input = tmp_path / "missing.bin"
 
@@ -26,9 +27,9 @@ def test_main_handles_missing_input_file(tmp_path, monkeypatch):
     ]
     monkeypatch.setattr(sys, "argv", ["prog"] + argv)
 
-    # Spodziewamy się, że main wywoła sys.exit
+    # Expect main to call sys.exit
     with pytest.raises(SystemExit) as e:
         main()
 
-    # Opcjonalnie sprawdzamy komunikat
-    assert "plik wejściowy" in str(e.value)
+    # Optionally check error message
+    assert "input file" in str(e.value)

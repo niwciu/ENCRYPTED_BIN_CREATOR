@@ -7,10 +7,10 @@ def main():
     args = get_parsed_args()
     config = Config.from_args(args)
 
-    print("Parametry wczytane poprawnie:")
+    print("Parameters loaded successfully:")
     config.print_summary()
 
-    # Generowanie pliku bin
+    # Generate the binary file
     try:
         generate_bin(
             input_path=config.input_path,
@@ -22,6 +22,6 @@ def main():
             key=config.key,
             page_length=config.page_length,
         )
-        print(f"\nPlik wyjściowy '{config.output_path}' wygenerowany pomyślnie.")
+        print(f"\nOutput file '{config.output_path}' generated successfully.")
     except Exception as e:
-        print(f"\nBłąd podczas generowania pliku: {e}")
+        print(f"\nError while generating the output file: {e}")

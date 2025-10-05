@@ -5,17 +5,17 @@ from bin_creator.cli import parser
 
 
 def test_generate_bin(tmp_path):
-    # Pliki tymczasowe
+    # Temporary files
     input_file = tmp_path / "firmware.bin"
     output_file = tmp_path / "out.bin"
 
-    # Tworzymy testowy input (50 bajtów)
+    # Create test input (50 bytes)
     input_file.write_bytes(bytes(range(50)))
 
-    # Klucz 16-bajtowy
+    # 16-byte key
     key = bytes(range(16))
 
-    # Wywołanie generate_bin
+    # Call generate_bin
     generate_bin(
         input_path=str(input_file),
         output_path=str(output_file),
@@ -24,21 +24,18 @@ def test_generate_bin(tmp_path):
         prev_app_version=0x1100,
         bootloader_id=0x10,
         key=key,
-        page_length=16,  # mała strona dla testu
+        page_length=16,  # small page for test
     )
 
-    # Sprawdzenie czy plik wyjściowy powstał
+    # Check if output file exists
     assert output_file.exists()
     out_data = output_file.read_bytes()
 
-    # Nagłówek powinien mieć:
-    # 4 (bootloader) + 4 + 4 (product id) + 4 + 4 (app versions) + 4 + 4 (page_length) + 16 (iv) + 4 (crc) = 48 bajtów
+    # Header length: 4+4+4+4+4+4+4+16+4 = 48 bytes
     header_len = 4 + 4 + 4 + 4 + 4 + 4 + 4 + 16 + 4
-    assert (
-        len(out_data) > header_len
-    )  # szyfrowany payload powinien być większy niż nagłówek
+    assert len(out_data) > header_len  # encrypted payload should be larger than header
 
-    # Liczba stron w nagłówku (offset 20) = len(input_padded) // page_length
+    # Number of pages in header (offset 20)
     num_pages = int.from_bytes(out_data[20:24], "little")
     padded_len = ((50 + 16 - 1) // 16) * 16
     expected_pages = padded_len // 16
@@ -61,11 +58,11 @@ def test_generate_bin_input_file_missing(tmp_path):
             key=key,
             page_length=16,
         )
-    assert "nie istnieje" in str(e.value)
+    assert "does not exist" in str(e.value)
 
 
 def test_load_requirements_file_success(tmp_path):
-    # Tworzymy tymczasowy plik z poprawnymi argumentami
+    # Create temporary file with valid arguments
     path = tmp_path / "params.txt"
     path.write_text("-i input.bin -o output.bin")
 
