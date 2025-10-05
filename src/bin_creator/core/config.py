@@ -1,4 +1,6 @@
 """Moduł konfiguracji – przechowuje i drukuje parametry wejściowe."""
+
+
 class Config:
     """Reprezentuje zestaw parametrów wejściowych skryptu."""
 
