@@ -3,6 +3,8 @@
 **bin_creator** is a lightweight, flexible Python CLI tool for generating encrypted binary firmware files.  
 It supports configuration through parameter files (`requirements.txt`) and AES-128-CBC encryption compatible with Tiny-AES-C.
 
+This project is part of whole ecosystem that contain this encrypted bin file generator, update tool for embedded devices and custom tiny bootloader (consume less than 4kB of flash).
+
 ---
 
 ## 🚀 Features
@@ -44,13 +46,10 @@ bin_creator/
 
 ### 1️⃣ Requirements
 - Python **3.9+**
-- `pip` and `venv`
-- Install dependencies:
-  ```bash
-  pip install -r requirements.txt
-  ```
+- `pip`
+- `venv`
 
-### 2️⃣ Install from PyPI *(if published)*
+### 2️⃣ Install from PyPI *(not available now)*
 ```bash
 pip install bin-creator
 ```
@@ -65,6 +64,10 @@ pip install -e .
 ---
 
 ## 💻 Usage
+### 1️⃣ How to use it - start from help flag
+```bash
+python -m bin_creator -h
+```
 
 ### 1️⃣ Command-line example
 
@@ -178,8 +181,17 @@ You are free to use, modify, and distribute this software, provided that proper 
 
 ## 👤 Author
 
-**bin_creator** was created by [Your Name or Organization].  
-💬 Contact: [email / website]  
+**bin_creator** was created by niwicu.  
+💬 Contact: [niwciu@gmail.com / [website](https://github.com/niwciu)]  
 📦 Distribution: [PyPI / GitHub / internal project]
 
 > “Secure firmware means secure hardware.” 🔐
+
+<br>
+<div align="center">
+
+***
+
+![myEmbeddedWayBanerWhiteSmaller](https://github.com/user-attachments/assets/f4825882-e285-4e02-a75c-68fc86ff5716)
+***
+</div>
