@@ -33,4 +33,3 @@ def test_validate_file_paths(tmp_path):
     with pytest.raises(SystemExit) as e:
         validators.validate_file_paths(str(input_txt), str(output_file))
     assert "must have the '.bin' extension" in str(e.value)
-

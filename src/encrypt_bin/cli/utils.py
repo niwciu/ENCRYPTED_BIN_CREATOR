@@ -31,7 +31,7 @@ def parse_key(value):
         hex_str = cleaned[0].replace("0x", "").replace(" ", "")
         try:
             bytes_list = [
-                int(hex_str[i: i + 2], 16) for i in range(0, len(hex_str), 2)
+                int(hex_str[i : i + 2], 16) for i in range(0, len(hex_str), 2)
             ]
         except Exception:
             sys.exit("Error: key contains invalid hex characters.")
@@ -47,9 +47,7 @@ def parse_key(value):
                 bytes_list.append(val)
 
     if len(bytes_list) != 16:
-        sys.exit(
-            f"Error: key must be exactly 16 bytes long (got {len(bytes_list)})."
-        )
+        sys.exit(f"Error: key must be exactly 16 bytes long (got {len(bytes_list)}).")
 
     return bytes(bytes_list)
 

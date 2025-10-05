@@ -8,6 +8,7 @@ import os
 # load_requirements_file
 # -----------------------
 
+
 def test_load_requirements_file_success(tmp_path):
     """Correctly loads a requirements file"""
     path = tmp_path / "params.txt"
@@ -48,6 +49,7 @@ def test_load_requirements_file_shlex_exception(tmp_path, monkeypatch):
 # merge_args
 # -----------------------
 
+
 def test_merge_args_basic():
     """Correctly merges arguments without conflicts"""
     file_args = ["-i", "file1.bin"]
@@ -77,6 +79,7 @@ def test_merge_args_bad_syntax():
 # -----------------------
 # get_parsed_args
 # -----------------------
+
 
 def make_bin_file(tmp_path, name="in.bin"):
     f = tmp_path / name

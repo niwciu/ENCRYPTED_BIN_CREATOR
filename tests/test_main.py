@@ -45,8 +45,6 @@ def test_main_runs(tmp_path, argv, monkeypatch):
     assert output_file.exists()
 
 
-
-
 def test_main_handles_generate_bin_exception(tmp_path, monkeypatch):
     # Create input file
     input_file = tmp_path / "test_firmware.bin"
@@ -72,8 +70,12 @@ def test_main_handles_generate_bin_exception(tmp_path, monkeypatch):
     monkeypatch.setattr(sys, "argv", ["prog"] + argv)
 
     # Patch generate_bin in the __main__ module where main() uses it
-    with patch("encrypt_bin.__main__.generate_bin", side_effect=Exception("mocked error")), \
-         patch("builtins.print") as mock_print:
+    with (
+        patch(
+            "encrypt_bin.__main__.generate_bin", side_effect=Exception("mocked error")
+        ),
+        patch("builtins.print") as mock_print,
+    ):
         main()
 
     # Combine all print calls into a single string
@@ -81,4 +83,3 @@ def test_main_handles_generate_bin_exception(tmp_path, monkeypatch):
 
     # Ensure that the exception message was printed
     assert "Error while generating the output file: mocked error" in printed
-

@@ -72,9 +72,7 @@ def get_parsed_args():
         description="Tool for handling binary files with device parameters.",
     )
 
-    parser.add_argument(
-        "-i", "--input", required=True, help="Path to input .bin file"
-    )
+    parser.add_argument("-i", "--input", required=True, help="Path to input .bin file")
     parser.add_argument(
         "-o", "--output", required=True, help="Path to output .bin file"
     )

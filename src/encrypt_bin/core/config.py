@@ -50,4 +50,4 @@ class Config:
         )
         print(f" Page length:         {self.page_length}")
         # print(f" Key (hex):           {' '.join(f'{b:02X}' for b in self.key)}")
-        print(f" Key (hex):           Classified")
+        print(" Key (hex):           Classified")

@@ -23,14 +23,15 @@ def test_parse_int_valid(value, expected):
     "value",
     [
         "0x1FFFFFFFF",  # exceeds bit limit
-        "notanumber",   # invalid format
+        "notanumber",  # invalid format
     ],
 )
 def test_parse_int_invalid(value):
     with pytest.raises(SystemExit) as e:
         utils.parse_int(value, name="test_param", max_bits=32)
-    assert "must be a decimal or hexadecimal number" in str(e.value) or "exceeds uint32" in str(e.value)
-
+    assert "must be a decimal or hexadecimal number" in str(
+        e.value
+    ) or "exceeds uint32" in str(e.value)
 
 
 # -----------------------
@@ -54,8 +55,14 @@ def test_parse_key_valid(key_str):
     "key_str, msg",
     [
         ("00112233", "exactly 16 bytes"),  # too short
-        ("00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF 00", "exactly 16 bytes"),  # too long
-        ("00 11 22 33 44 55 66 77 88 99 GG BB CC DD EE FF", "not a valid hex byte"),  # invalid byte
+        (
+            "00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF 00",
+            "exactly 16 bytes",
+        ),  # too long
+        (
+            "00 11 22 33 44 55 66 77 88 99 GG BB CC DD EE FF",
+            "not a valid hex byte",
+        ),  # invalid byte
         ("00112233445566778899AABBCCDDEZZ", "invalid hex characters"),  # invalid chars
     ],
 )
