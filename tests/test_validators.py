@@ -1,6 +1,7 @@
 import pytest
 from bin_creator.cli import validators
 
+
 def test_validate_file_paths(tmp_path):
     input_file = tmp_path / "in.bin"
     input_file.write_bytes(b"\x00")

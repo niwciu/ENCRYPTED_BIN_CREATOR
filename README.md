@@ -1,0 +1,185 @@
+# 🔒 bin_creator – Encrypted BIN File Generator for Embedded Devices
+
+**bin_creator** is a lightweight, flexible Python CLI tool for generating encrypted binary firmware files.  
+It supports configuration through parameter files (`requirements.txt`) and AES-128-CBC encryption compatible with Tiny-AES-C.
+
+---
+
+## 🚀 Features
+
+- 🔐 **AES-128 CBC encryption** (Tiny-AES-C compatible)
+- 🧩 **Parameter file support (`-r`)** – store CLI arguments in a text file
+- 🗝️ **Key loading from file or CLI**
+- 🧮 **Automatic CRC32 calculation**
+- ⚙️ **Full input validation** (paths, integers, key format)
+- 🧰 **Clean, argparse-based CLI**
+- ✅ **Extensive test coverage** (pytest + coverage)
+- 🧾 **PEP8-compliant** (flake8, black)
+
+---
+
+## 🧠 Project Structure
+
+```
+bin_creator/
+├── cli/
+│   ├── parser.py         # CLI argument handling
+│   ├── utils.py          # Helper functions (parse_int, parse_key, etc.)
+│   ├── validators.py     # Path and file validation
+│
+├── core/
+│   ├── builder.py        # Core logic for BIN generation
+│   ├── config.py         # Config class – stores parsed parameters
+│
+└── tests/
+    ├── test_parser.py
+    ├── test_utils.py
+    ├── test_builder.py
+    └── ...
+```
+
+---
+
+## ⚙️ Installation
+
+### 1️⃣ Requirements
+- Python **3.9+**
+- `pip` and `venv`
+- Install dependencies:
+  ```bash
+  pip install -r requirements.txt
+  ```
+
+### 2️⃣ Install from PyPI *(if published)*
+```bash
+pip install bin-creator
+```
+
+### 3️⃣ Local installation
+```bash
+git clone https://github.com/<your_repo>/bin_creator.git
+cd bin_creator
+pip install -e .
+```
+
+---
+
+## 💻 Usage
+
+### 1️⃣ Command-line example
+
+```bash
+python -m bin_creator     -i firmware.bin     -o encrypted_out.bin     -d 0x12345678     -b 0x10     -k "00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF"     -v 0x1201     -p 0x1100
+```
+
+### 2️⃣ Using a parameter file (`params.txt`)
+
+File contents:
+```
+-i firmware.bin
+-o encrypted_out.bin
+-d 0x12345678
+-b 0x10
+-k 00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
+-v 0x1201
+-p 0x1100
+```
+
+Run:
+```bash
+python -m bin_creator -r params.txt
+```
+
+---
+
+## 🗝️ Key file format (`keys.txt`)
+
+Use the `-K` / `--key-file` option to specify a key mapping file:
+
+```
+# device_id ; key
+0x1234;00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
+0x5678;11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF 00
+```
+
+---
+
+## 🧪 Testing
+
+### Run all tests
+```bash
+pytest -v
+```
+
+### Check coverage
+```bash
+pytest --cov=bin_creator --cov-report=term-missing
+```
+
+### Run linting
+```bash
+flake8 bin_creator
+```
+
+---
+
+## 🧰 CLI Parameters
+
+| Flag | Description | Required | Example |
+|------|--------------|-----------|----------|
+| `-i`, `--input` | Input .bin file | ✅ | `-i firmware.bin` |
+| `-o`, `--output` | Output .bin file | ✅ | `-o output.bin` |
+| `-d`, `--device-id` | Device ID (uint32) | ✅ | `-d 0x12345678` |
+| `-b`, `--bootloader-id` | Bootloader ID (uint16) | ✅ | `-b 0x10` |
+| `-k`, `--key` | 16-byte hex key | ✅ (if no `--key-file`) | `-k "00 11 22 ..."` |
+| `-K`, `--key-file` | File containing key map | ✅ (if no `--key`) | `-K keys.txt` |
+| `-v`, `--app-version` | Application version | ✅ | `-v 0x1201` |
+| `-p`, `--prev-app-version` | Previous app version | ✅ | `-p 0x1100` |
+| `-l`, `--page-length` | Page length (default: 2048) | ❌ | `-l 1024` |
+| `-r`, `--requirements` | Parameter file | ❌ | `-r params.txt` |
+
+---
+
+## 🧩 BIN File Structure
+
+| Offset | Size | Field |
+|--------|------|-------|
+| 0x00 | 4 | Bootloader ID |
+| 0x04 | 4 | Product ID (MSB) |
+| 0x08 | 4 | Product ID (LSB) |
+| 0x0C | 4 | App Version |
+| 0x10 | 4 | Previous App Version |
+| 0x14 | 4 | Num Pages |
+| 0x18 | 4 | Page Length |
+| 0x1C | 16 | IV (AES) |
+| 0x2C | 4 | CRC32 |
+| 0x30 | N | Encrypted Payload |
+
+---
+
+## 🧱 Contributing
+
+1. Fork the repository  
+2. Create a new branch:  
+   ```bash
+   git checkout -b feature/my-feature
+   ```
+3. Run tests locally (`pytest`)  
+4. Submit a Pull Request 🚀
+
+---
+
+## 🪪 License
+
+Licensed under the **MIT License**.  
+You are free to use, modify, and distribute this software, provided that proper credit is given.
+
+---
+
+## 👤 Author
+
+**bin_creator** was created by [Your Name or Organization].  
+💬 Contact: [email / website]  
+📦 Distribution: [PyPI / GitHub / internal project]
+
+> “Secure firmware means secure hardware.” 🔐

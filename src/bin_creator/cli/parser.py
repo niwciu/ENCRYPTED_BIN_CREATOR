@@ -1,4 +1,5 @@
 """Moduł obsługi argumentów CLI i pliku requirements."""
+
 import argparse
 import sys
 import shlex
@@ -19,11 +20,12 @@ def load_requirements_file(path):
 
 def merge_args(file_args, cli_args):
     """Łączy argumenty z pliku i CLI. W przypadku konfliktu z różnymi wartościami -> błąd."""
+
     def args_to_dict(args_list):
         d = {}
         key = None
         for arg in args_list:
-            if arg.startswith('-'):
+            if arg.startswith("-"):
                 key = arg
                 d[key] = None
             else:
@@ -51,7 +53,9 @@ def merge_args(file_args, cli_args):
 def get_parsed_args():
     """Zwraca gotowy obiekt argparse.Namespace z parsowanymi i zweryfikowanymi wartościami."""
     base_parser = argparse.ArgumentParser(add_help=False)
-    base_parser.add_argument("-r", "--requirements", help="Plik z parametrami wejściowymi (.txt)")
+    base_parser.add_argument(
+        "-r", "--requirements", help="Plik z parametrami wejściowymi (.txt)"
+    )
 
     pre_args, remaining = base_parser.parse_known_args()
 
@@ -63,22 +67,55 @@ def get_parsed_args():
 
     parser = argparse.ArgumentParser(
         parents=[base_parser],
-        description="Skrypt do obsługi plików binarnych z parametrami urządzenia."
+        description="Skrypt do obsługi plików binarnych z parametrami urządzenia.",
     )
 
-    parser.add_argument("-i", "--input", required=True, help="Ścieżka do pliku wejściowego .bin")
-    parser.add_argument("-o", "--output", required=True, help="Ścieżka do pliku wyjściowego .bin")
-    parser.add_argument("-d", "--device-id", required=True, help="Device ID (uint32, dec lub hex)")
-    parser.add_argument("-b", "--bootloader-id", required=True, help="Bootloader ID (uint16, dec lub hex)")
+    parser.add_argument(
+        "-i", "--input", required=True, help="Ścieżka do pliku wejściowego .bin"
+    )
+    parser.add_argument(
+        "-o", "--output", required=True, help="Ścieżka do pliku wyjściowego .bin"
+    )
+    parser.add_argument(
+        "-d", "--device-id", required=True, help="Device ID (uint32, dec lub hex)"
+    )
+    parser.add_argument(
+        "-b",
+        "--bootloader-id",
+        required=True,
+        help="Bootloader ID (uint16, dec lub hex)",
+    )
 
     # zamiast bezpośredniego parser.add_argument("-k"...) dodajemy mutual exclusive group
     key_group = parser.add_mutually_exclusive_group(required=True)
-    key_group.add_argument("-k", "--key", help="Klucz 16 bajtów w hex (jeśli podajesz bezpośrednio)")
-    key_group.add_argument("-K", "--key-file", help="Plik z mapą kluczy: device_id -> key (użyj gdy chcesz wskazać katalog z kluczami)")
+    key_group.add_argument(
+        "-k", "--key", help="Klucz 16 bajtów w hex (jeśli podajesz bezpośrednio)"
+    )
+    key_group.add_argument(
+        "-K",
+        "--key-file",
+        help="Plik z mapą kluczy: device_id -> key (użyj gdy chcesz wskazać katalog z kluczami)",
+    )
 
-    parser.add_argument("-v", "--app-version", required=True, help="Wersja aplikacji (uint16, dec lub hex)")
-    parser.add_argument("-p", "--prev-app-version", required=True, help="Poprzednia wersja aplikacji (uint16, dec lub hex)")
-    parser.add_argument("-l", "--page-length", default=2048, type=int, help="Długość strony (domyślnie 2048)")
+    parser.add_argument(
+        "-v",
+        "--app-version",
+        required=True,
+        help="Wersja aplikacji (uint16, dec lub hex)",
+    )
+    parser.add_argument(
+        "-p",
+        "--prev-app-version",
+        required=True,
+        help="Poprzednia wersja aplikacji (uint16, dec lub hex)",
+    )
+    parser.add_argument(
+        "-l",
+        "--page-length",
+        default=2048,
+        type=int,
+        help="Długość strony (domyślnie 2048)",
+    )
 
     args = parser.parse_args(merged_args)
 

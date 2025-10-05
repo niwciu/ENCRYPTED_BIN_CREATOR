@@ -1,7 +1,9 @@
 """Funkcje pomocnicze do parsowania wartości liczbowych i kluczy."""
+
 import re
 import sys
 import os
+
 # from typing import Optional
 
 
@@ -10,7 +12,9 @@ def parse_int(value, name, max_bits):
     try:
         val = int(value, 0)
     except ValueError:
-        sys.exit(f"Błąd: {name} musi być liczbą dziesiętną lub szesnastkową (podano: {value})")
+        sys.exit(
+            f"Błąd: {name} musi być liczbą dziesiętną lub szesnastkową (podano: {value})"
+        )
 
     max_val = (1 << max_bits) - 1
     if not (0 <= val <= max_val):
@@ -21,7 +25,7 @@ def parse_int(value, name, max_bits):
 
 def parse_key(value):
     """Parsuje 16-bajtowy klucz hex z różnych formatów."""
-    cleaned = re.split(r'[\s,]+', value.strip())
+    cleaned = re.split(r"[\s,]+", value.strip())
     bytes_list = []
 
     # wersja 1-częściowa: ciąg 32-znakowy (np. "001122...")
@@ -29,7 +33,9 @@ def parse_key(value):
         hex_str = cleaned[0].replace("0x", "").replace(" ", "")
         # spróbuj przekonwertować parami - złapiemy niepoprawne znaki
         try:
-            bytes_list = [int(hex_str[i:i + 2], 16) for i in range(0, len(hex_str), 2)]
+            bytes_list = [
+                int(hex_str[i : i + 2], 16) for i in range(0, len(hex_str), 2)
+            ]
         except Exception:
             sys.exit("Błąd: klucz zawiera niepoprawne znaki hex.")
     else:
@@ -44,7 +50,9 @@ def parse_key(value):
                 bytes_list.append(val)
 
     if len(bytes_list) != 16:
-        sys.exit(f"Błąd: klucz musi mieć dokładnie 16 bajtów (podano {len(bytes_list)}).")
+        sys.exit(
+            f"Błąd: klucz musi mieć dokładnie 16 bajtów (podano {len(bytes_list)})."
+        )
 
     return bytes(bytes_list)
 
@@ -57,7 +65,9 @@ def _read_key_file_lines(path: str) -> list[str]:
         sys.exit(f"Błąd odczytu pliku kluczy: {e}")
 
     if st.st_mode & 0o077:
-        print(f"Uwaga: plik z kluczami '{path}' ma prawa grupy/others (sprawdź uprawnienia).")
+        print(
+            f"Uwaga: plik z kluczami '{path}' ma prawa grupy/others (sprawdź uprawnienia)."
+        )
 
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -77,7 +87,7 @@ def _parse_key_line(line: str):
         left, right = line.split(";", 1)
         id_str, key_str = left.strip(), right.strip()
     else:
-        parts = re.split(r'[\s,]+', line)
+        parts = re.split(r"[\s,]+", line)
         if len(parts) < 2:
             return None
         id_str, key_str = parts[0], " ".join(parts[1:])
@@ -113,4 +123,6 @@ def find_key_in_file(key_file_path: str, device_id: int) -> bytes:
         # Walidacja i konwersja klucza
         return parse_key(key_str)
 
-    sys.exit(f"Błąd: nie znaleziono klucza dla device_id {hex(device_id)} w pliku '{key_file_path}'.")
+    sys.exit(
+        f"Błąd: nie znaleziono klucza dla device_id {hex(device_id)} w pliku '{key_file_path}'."
+    )

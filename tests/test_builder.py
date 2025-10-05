@@ -24,7 +24,7 @@ def test_generate_bin(tmp_path):
         prev_app_version=0x1100,
         bootloader_id=0x10,
         key=key,
-        page_length=16  # mała strona dla testu
+        page_length=16,  # mała strona dla testu
     )
 
     # Sprawdzenie czy plik wyjściowy powstał
@@ -34,14 +34,15 @@ def test_generate_bin(tmp_path):
     # Nagłówek powinien mieć:
     # 4 (bootloader) + 4 + 4 (product id) + 4 + 4 (app versions) + 4 + 4 (page_length) + 16 (iv) + 4 (crc) = 48 bajtów
     header_len = 4 + 4 + 4 + 4 + 4 + 4 + 4 + 16 + 4
-    assert len(out_data) > header_len  # szyfrowany payload powinien być większy niż nagłówek
+    assert (
+        len(out_data) > header_len
+    )  # szyfrowany payload powinien być większy niż nagłówek
 
     # Liczba stron w nagłówku (offset 20) = len(input_padded) // page_length
     num_pages = int.from_bytes(out_data[20:24], "little")
     padded_len = ((50 + 16 - 1) // 16) * 16
     expected_pages = padded_len // 16
     assert num_pages == expected_pages
-
 
 
 def test_generate_bin_input_file_missing(tmp_path):
@@ -58,9 +59,10 @@ def test_generate_bin_input_file_missing(tmp_path):
             prev_app_version=0x1100,
             bootloader_id=0x10,
             key=key,
-            page_length=16
+            page_length=16,
         )
     assert "nie istnieje" in str(e.value)
+
 
 def test_load_requirements_file_success(tmp_path):
     # Tworzymy tymczasowy plik z poprawnymi argumentami

@@ -4,17 +4,28 @@ import pytest
 from unittest.mock import patch
 from bin_creator.__main__ import main
 
-@pytest.mark.parametrize("argv", [
+
+@pytest.mark.parametrize(
+    "argv",
     [
-        "-i", "tests/test_firmware.bin",
-        "-o", "tests/out.bin",
-        "-d", "0x12345678",
-        "-b", "0x10",
-        "-k", "00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF",
-        "-v", "0x1201",
-        "-p", "0x1100"
-    ]
-])
+        [
+            "-i",
+            "tests/test_firmware.bin",
+            "-o",
+            "tests/out.bin",
+            "-d",
+            "0x12345678",
+            "-b",
+            "0x10",
+            "-k",
+            "00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF",
+            "-v",
+            "0x1201",
+            "-p",
+            "0x1100",
+        ]
+    ],
+)
 def test_main_runs(tmp_path, argv, monkeypatch):
     # Tworzymy plik wejściowy
     input_file = tmp_path / "test_firmware.bin"

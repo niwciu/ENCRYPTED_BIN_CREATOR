@@ -4,8 +4,17 @@
 class Config:
     """Reprezentuje zestaw parametrów wejściowych skryptu."""
 
-    def __init__(self, input_path, output_path, device_id, bootloader_id,
-                 key, app_version, prev_app_version, page_length):
+    def __init__(
+        self,
+        input_path,
+        output_path,
+        device_id,
+        bootloader_id,
+        key,
+        app_version,
+        prev_app_version,
+        page_length,
+    ):
         self.input_path = input_path
         self.output_path = output_path
         self.device_id = device_id
@@ -36,6 +45,8 @@ class Config:
         print(f" Device ID:           {self.device_id} (0x{self.device_id:X})")
         print(f" Bootloader ID:       {self.bootloader_id} (0x{self.bootloader_id:X})")
         print(f" App version:         {self.app_version} (0x{self.app_version:X})")
-        print(f" Previous app ver:    {self.prev_app_version} (0x{self.prev_app_version:X})")
+        print(
+            f" Previous app ver:    {self.prev_app_version} (0x{self.prev_app_version:X})"
+        )
         print(f" Page length:         {self.page_length}")
         print(f" Key (hex):           {' '.join(f'{b:02X}' for b in self.key)}")

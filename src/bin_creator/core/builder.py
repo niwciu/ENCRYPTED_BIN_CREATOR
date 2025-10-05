@@ -55,7 +55,7 @@ def generate_bin(
         # Little Endian
         f.write(struct.pack("<I", bootloader_id))
         f.write(struct.pack("<I", (product_id >> 32) & 0xFFFFFFFF))  # MSB product_id
-        f.write(struct.pack("<I", product_id & 0xFFFFFFFF))          # LSB product_id
+        f.write(struct.pack("<I", product_id & 0xFFFFFFFF))  # LSB product_id
         f.write(struct.pack("<I", app_version))
         f.write(struct.pack("<I", prev_app_version))
         num_pages = len(input_bytes) // page_length

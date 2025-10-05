@@ -20,7 +20,7 @@ def main():
             prev_app_version=config.prev_app_version,
             bootloader_id=config.bootloader_id,
             key=config.key,
-            page_length=config.page_length
+            page_length=config.page_length,
         )
         print(f"\nPlik wyjściowy '{config.output_path}' wygenerowany pomyślnie.")
     except Exception as e:
