@@ -1,6 +1,6 @@
-# 🔒 bin_creator – Encrypted BIN File Generator for Embedded Devices
+# 🔒 encrypt-bin: Encrypted BIN File Generator for Embedded Devices
 
-**bin_creator** is a lightweight, flexible Python CLI tool for generating encrypted binary firmware files.  
+**encrypt-bin** is a lightweight, flexible Python CLI tool for generating encrypted binary firmware files.  
 It supports configuration through parameter files (`requirements.txt`) and AES-128-CBC encryption compatible with Tiny-AES-C.
 
 This project is part of whole ecosystem that contain this encrypted bin file generator, update tool for embedded devices and custom tiny bootloader (consume less than 4kB of flash).
@@ -23,7 +23,7 @@ This project is part of whole ecosystem that contain this encrypted bin file gen
 ## 🧠 Project Structure
 
 ```
-bin_creator/
+encrypt-bin/
 ├── cli/
 │   ├── parser.py         # CLI argument handling
 │   ├── utils.py          # Helper functions (parse_int, parse_key, etc.)
@@ -51,13 +51,13 @@ bin_creator/
 
 ### 2️⃣ Install from PyPI *(not available now)*
 ```bash
-pip install bin-creator
+pip install encrypt-bin
 ```
 
 ### 3️⃣ Local installation
 ```bash
-git clone https://github.com/<your_repo>/bin_creator.git
-cd bin_creator
+git clone https://github.com/<your_repo>/encrypt-bin.git
+cd encrypt-bin
 pip install -e .
 ```
 
@@ -66,13 +66,13 @@ pip install -e .
 ## 💻 Usage
 ### 1️⃣ How to use it - start from help flag
 ```bash
-python -m bin_creator -h
+python -m encrypt-bin -h
 ```
 
 ### 1️⃣ Command-line example
 
 ```bash
-python -m bin_creator     -i firmware.bin     -o encrypted_out.bin     -d 0x12345678     -b 0x10     -k "00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF"     -v 0x1201     -p 0x1100
+python -m encrypt-bin     -i firmware.bin     -o encrypted_out.bin     -d 0x12345678     -b 0x10     -k "00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF"     -v 0x1201     -p 0x1100
 ```
 
 ### 2️⃣ Using a parameter file (`params.txt`)
@@ -90,7 +90,7 @@ File contents:
 
 Run:
 ```bash
-python -m bin_creator -r params.txt
+python -m encrypt-bin -r params.txt
 ```
 
 ---
@@ -116,12 +116,12 @@ pytest -v
 
 ### Check coverage
 ```bash
-pytest --cov=bin_creator --cov-report=term-missing
+pytest --cov=encrypt-bin --cov-report=term-missing
 ```
 
 ### Run linting
 ```bash
-flake8 bin_creator
+flake8 encrypt-bin
 ```
 
 ---
@@ -181,7 +181,7 @@ You are free to use, modify, and distribute this software, provided that proper 
 
 ## 👤 Author
 
-**bin_creator** was created by niwicu.  
+**encrypt-bin** was created by niwicu.  
 💬 Contact: [niwciu@gmail.com / [website](https://github.com/niwciu)]  
 📦 Distribution: [PyPI / GitHub / internal project]
 

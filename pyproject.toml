@@ -3,7 +3,7 @@ requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bin-creator"
+name = "encrypt-bin"
 version = "0.1.0"
 description = "Narzędzie do tworzenia i przetwarzania plików binarnych dla urządzeń embedded"
 readme = "README.md"
@@ -23,4 +23,4 @@ dev = [
 ]
 
 [project.scripts]
-bin-creator = "bin_creator.__main__:main"
+encrypt-bin = "encrypt_bin.__main__:main"

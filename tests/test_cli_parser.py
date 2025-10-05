@@ -1,7 +1,7 @@
 import pytest
 import sys
 from unittest.mock import patch
-from bin_creator.cli import parser
+from encrypt_bin.cli import parser
 import os
 
 # -----------------------

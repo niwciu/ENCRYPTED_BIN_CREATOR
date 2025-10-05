@@ -3,8 +3,8 @@
 import argparse
 import sys
 import shlex
-from bin_creator.cli.validators import validate_file_paths
-from bin_creator.cli.utils import parse_int, parse_key, find_key_in_file
+from encrypt_bin.cli.validators import validate_file_paths
+from encrypt_bin.cli.utils import parse_int, parse_key, find_key_in_file
 
 
 def load_requirements_file(path):

@@ -1,6 +1,6 @@
-from bin_creator.cli.parser import get_parsed_args
-from bin_creator.core.config import Config
-from bin_creator.core.builder import generate_bin
+from encrypt_bin.cli.parser import get_parsed_args
+from encrypt_bin.core.config import Config
+from encrypt_bin.core.builder import generate_bin
 
 
 def main():

@@ -1,5 +1,5 @@
 import pytest
-from bin_creator.cli import validators
+from encrypt_bin.cli import validators
 
 
 def test_validate_file_paths(tmp_path):
@@ -21,7 +21,6 @@ def test_validate_file_paths(tmp_path):
     with pytest.raises(SystemExit) as e:
         validators.validate_file_paths(str(input_txt), str(output_file))
     assert "must have the '.bin' extension" in str(e.value)
-
 
     # non-existent output directory -> SystemExit
     invalid_output = tmp_path / "nonexistent_dir" / "out.bin"

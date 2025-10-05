@@ -1,7 +1,7 @@
 import pytest
 import os
-from bin_creator.core.builder import generate_bin
-from bin_creator.cli import parser
+from encrypt_bin.core.builder import generate_bin
+from encrypt_bin.cli import parser
 
 
 def test_generate_bin(tmp_path):

@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import patch
 import stat
-from bin_creator.cli import utils, validators
-from bin_creator.cli.utils import find_key_in_file
+from encrypt_bin.cli import utils, validators
+from encrypt_bin.cli.utils import find_key_in_file
 
 
 # -----------------------

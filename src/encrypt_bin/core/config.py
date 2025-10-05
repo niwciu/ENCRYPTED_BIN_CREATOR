@@ -49,4 +49,5 @@ class Config:
             f" Previous app version:{self.prev_app_version} (0x{self.prev_app_version:X})"
         )
         print(f" Page length:         {self.page_length}")
-        print(f" Key (hex):           {' '.join(f'{b:02X}' for b in self.key)}")
+        # print(f" Key (hex):           {' '.join(f'{b:02X}' for b in self.key)}")
+        print(f" Key (hex):           Classified")

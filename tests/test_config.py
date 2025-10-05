@@ -1,5 +1,5 @@
 # tests/test_config.py
-from bin_creator.core.config import Config
+from encrypt_bin.core.config import Config
 from types import SimpleNamespace
 
 

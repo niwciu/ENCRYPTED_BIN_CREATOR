@@ -1,7 +1,7 @@
 import sys
 import pytest
 from unittest.mock import patch
-from bin_creator.__main__ import main
+from encrypt_bin.__main__ import main
 
 
 def test_main_handles_missing_input_file(tmp_path, monkeypatch):
