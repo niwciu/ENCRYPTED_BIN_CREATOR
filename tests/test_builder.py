@@ -1,6 +1,8 @@
 import pytest
 import os
 from bin_creator.core.builder import generate_bin
+from bin_creator.cli import parser
+
 
 def test_generate_bin(tmp_path):
     # Pliki tymczasowe
@@ -39,3 +41,32 @@ def test_generate_bin(tmp_path):
     padded_len = ((50 + 16 - 1) // 16) * 16
     expected_pages = padded_len // 16
     assert num_pages == expected_pages
+
+
+
+def test_generate_bin_input_file_missing(tmp_path):
+    input_file = tmp_path / "missing.bin"
+    output_file = tmp_path / "out.bin"
+    key = bytes(range(16))
+
+    with pytest.raises(FileNotFoundError) as e:
+        generate_bin(
+            input_path=str(input_file),
+            output_path=str(output_file),
+            product_id=0x12345678ABCDEF00,
+            app_version=0x1201,
+            prev_app_version=0x1100,
+            bootloader_id=0x10,
+            key=key,
+            page_length=16
+        )
+    assert "nie istnieje" in str(e.value)
+
+def test_load_requirements_file_success(tmp_path):
+    # Tworzymy tymczasowy plik z poprawnymi argumentami
+    path = tmp_path / "params.txt"
+    path.write_text("-i input.bin -o output.bin")
+
+    args = parser.load_requirements_file(str(path))
+
+    assert args == ["-i", "input.bin", "-o", "output.bin"]

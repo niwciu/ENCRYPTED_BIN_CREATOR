@@ -3,7 +3,7 @@ import argparse
 import sys
 import shlex
 from bin_creator.cli.validators import validate_file_paths
-from bin_creator.cli.utils import parse_int, parse_key
+from bin_creator.cli.utils import parse_int, parse_key, find_key_in_file
 
 
 def load_requirements_file(path):
@@ -70,7 +70,12 @@ def get_parsed_args():
     parser.add_argument("-o", "--output", required=True, help="Ścieżka do pliku wyjściowego .bin")
     parser.add_argument("-d", "--device-id", required=True, help="Device ID (uint32, dec lub hex)")
     parser.add_argument("-b", "--bootloader-id", required=True, help="Bootloader ID (uint16, dec lub hex)")
-    parser.add_argument("-k", "--key", required=True, help="Klucz 16 bajtów w hex")
+
+    # zamiast bezpośredniego parser.add_argument("-k"...) dodajemy mutual exclusive group
+    key_group = parser.add_mutually_exclusive_group(required=True)
+    key_group.add_argument("-k", "--key", help="Klucz 16 bajtów w hex (jeśli podajesz bezpośrednio)")
+    key_group.add_argument("-K", "--key-file", help="Plik z mapą kluczy: device_id -> key (użyj gdy chcesz wskazać katalog z kluczami)")
+
     parser.add_argument("-v", "--app-version", required=True, help="Wersja aplikacji (uint16, dec lub hex)")
     parser.add_argument("-p", "--prev-app-version", required=True, help="Poprzednia wersja aplikacji (uint16, dec lub hex)")
     parser.add_argument("-l", "--page-length", default=2048, type=int, help="Długość strony (domyślnie 2048)")
@@ -80,11 +85,18 @@ def get_parsed_args():
     # Walidacja ścieżek
     validate_file_paths(args.input, args.output)
 
-    # Parsowanie liczb i klucza
-    args.device_id = parse_int(args.device_id, "Device ID", 32)
-    args.bootloader_id = parse_int(args.bootloader_id, "Bootloader ID", 16)
-    args.app_version = parse_int(args.app_version, "App version", 16)
-    args.prev_app_version = parse_int(args.prev_app_version, "Previous app version", 16)
-    args.key = parse_key(args.key)
+    # Parsowanie liczb (najpierw device id, bo możemy go potrzebować do wyszukania klucza)
+    args.device_id = parse_int(args.device_id, "Device ID", 64)
+    args.bootloader_id = parse_int(args.bootloader_id, "Bootloader ID", 32)
+    args.app_version = parse_int(args.app_version, "App version", 32)
+    args.prev_app_version = parse_int(args.prev_app_version, "Previous app version", 32)
+
+    # Parsowanie klucza: jeśli podano --key-file, wyszukaj klucz dla device_id; w przeciwnym wypadku parsuj --key
+    if getattr(args, "key_file", None):
+        # find_key_in_file zwraca bytes lub robi sys.exit
+        args.key = find_key_in_file(args.key_file, args.device_id)
+    else:
+        # parse_key zwraca bytes lub robi sys.exit
+        args.key = parse_key(args.key)
 
     return args
