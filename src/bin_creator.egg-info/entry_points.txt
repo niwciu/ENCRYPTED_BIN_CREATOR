@@ -1,0 +1,2 @@
+[console_scripts]
+bin-creator = bin_creator.__main__:main

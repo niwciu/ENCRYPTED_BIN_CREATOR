@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bin-creator"
+version = "0.1.0"
+description = "Narzędzie do tworzenia i przetwarzania plików binarnych dla urządzeń embedded"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Twoje Imię", email = "twoj@email.com" }]
+requires-python = ">=3.9"
+dependencies = [
+    "pycryptodome>=3.17.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "black",
+    "flake8"
+]
+
+[project.scripts]
+bin-creator = "bin_creator.__main__:main"
