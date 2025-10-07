@@ -54,6 +54,7 @@ jobs:
     - name: Run tests with Xvfb
       uses: GabrielBB/xvfb-action@v1
       with:
-        run: .venv/bin/pytest --cov=src/encrypt_bin tests/
+        run: .venv/bin/pytest --cov=src/encrypt_bin --cov-fail-under=90 tests/
       env:
         QT_QPA_PLATFORM: offscreen
+
