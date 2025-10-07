@@ -152,7 +152,7 @@ def test_get_parsed_args_with_requirements(monkeypatch, tmp_path):
     req_file.write_text(
         f"-i {inp} -o {out} -d 0x1234 -b 0x10 -k 00112233445566778899AABBCCDDEEFF -v 0x1201 -p 0x1100"
     )
-    monkeypatch.setattr(sys, "argv", ["prog", "-r", str(req_file)])
+    monkeypatch.setattr(sys, "argv", ["prog", "-c", str(req_file)])
 
     args = parser.get_parsed_args()
     assert args.device_id == 0x1234
@@ -284,3 +284,33 @@ def test_get_parsed_args_missing_key(monkeypatch, tmp_path):
     monkeypatch.setattr(sys, "argv", ["prog"] + argv)
     with pytest.raises(SystemExit):
         parser.get_parsed_args()
+
+def test_get_parsed_args_key_file_missing_id(monkeypatch, tmp_path):
+    """Key file exists but does not contain the provided device-id"""
+    inp = make_bin_file(tmp_path)
+    out = tmp_path / "output.bin"
+    key_file = tmp_path / "keys.txt"
+    key_file.write_text("0x9999;00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF")  # different device-id
+
+    argv = [
+        "-i",
+        str(inp),
+        "-o",
+        str(out),
+        "-d",
+        "0x1234",  # ID not in key_file
+        "-b",
+        "0x10",
+        "-K",
+        str(key_file),
+        "-v",
+        "0x1201",
+        "-p",
+        "0x1100",
+    ]
+    monkeypatch.setattr(sys, "argv", ["prog"] + argv)
+    
+    with pytest.raises(SystemExit) as e:
+        parser.get_parsed_args()
+    
+    assert "could not find key for device_id" in str(e.value)

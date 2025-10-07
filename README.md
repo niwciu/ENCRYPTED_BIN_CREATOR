@@ -54,17 +54,17 @@ encrypt-bin/
 pip install encrypt-bin
 ```
 
-### 3️⃣ Local installation
+### 3️⃣ Local installation with dev tools
 ```bash
 git clone https://github.com/<your_repo>/encrypt-bin.git
 cd encrypt-bin
-pip install -e .
+pip install -e .[dev]
 ```
 
 ---
 
 ## 💻 Usage
-### 1️⃣ How to use it - start from help flag
+### 1️⃣ How to use it -> start from help flag
 ```bash
 python -m encrypt-bin -h
 ```
@@ -121,7 +121,12 @@ pytest --cov=encrypt-bin --cov-report=term-missing
 
 ### Run linting
 ```bash
-flake8 encrypt-bin
+flake8 src
+```
+
+### Run formating
+```bash
+black src tests
 ```
 
 ---

@@ -53,68 +53,94 @@ def merge_args(file_args, cli_args):
 
 
 def get_parsed_args():
-    """Returns a fully parsed and validated argparse.Namespace object."""
+    """Parse and validate all CLI arguments."""
+
     base_parser = argparse.ArgumentParser(add_help=False)
     base_parser.add_argument(
-        "-r", "--requirements", help="Input parameters file (.txt)"
+        "-c", "--config",
+        metavar="FILE",
+        help=(
+            "Optional configuration file (.txt) containing CLI arguments.\n"
+            "Each line should contain a valid flag, e.g.:\n"
+            "    -i input.bin\n"
+            "    -o output.bin\n"
+            "    -d 0x1234567812345678\n"
+            "    ...\n"
+        )
     )
 
     pre_args, remaining = base_parser.parse_known_args()
 
     file_args = []
-    if pre_args.requirements:
-        file_args = load_requirements_file(pre_args.requirements)
+    if pre_args.config:
+        file_args = load_requirements_file(pre_args.config)
 
     merged_args = merge_args(file_args, remaining)
 
     parser = argparse.ArgumentParser(
         parents=[base_parser],
-        description="Tool for handling binary files with device parameters.",
+        description="Encrypts and packages binary files for device firmware updates.",
+        formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    parser.add_argument("-i", "--input", required=True, help="Path to input .bin file")
     parser.add_argument(
-        "-o", "--output", required=True, help="Path to output .bin file"
-    )
-    parser.add_argument(
-        "-d", "--device-id", required=True, help="Device ID (uint32, decimal or hex)"
-    )
-    parser.add_argument(
-        "-b",
-        "--bootloader-id",
+        "-i", "--input",
         required=True,
-        help="Bootloader ID (uint16, decimal or hex)",
+        metavar="FILE",
+        help="Full path to the input .bin file (including filename, e.g. ./input/firmware.bin)"
     )
 
-    # Use mutually exclusive group for key and key file
+    parser.add_argument(
+        "-o", "--output",
+        required=True,
+        metavar="FILE",
+        help="Full path for the generated .bin file (e.g. ./output/encrypted.bin)"
+    )
+    parser.add_argument(
+        "-d", "--device-id", required=True,
+        metavar="ID",
+        help="Device ID (uint64, decimal or hex, e.g. 0x0000123412341234)"
+    )
+    parser.add_argument(
+        "-b", "--bootloader-id", required=True,
+        metavar="ID",
+        help="Bootloader ID (uint16, decimal or hex, e.g. 0x00001234)"
+    )
+
+    # Key group
     key_group = parser.add_mutually_exclusive_group(required=True)
     key_group.add_argument(
-        "-k", "--key", help="16-byte key in hex (if provided directly)"
+        "-k", "--key",
+        metavar="HEX",
+        help=(
+            "16-byte encryption key as hexadecimal values.\n"
+            "Formats accepted:\n"
+            "  '00 11 22 33 ... FF'\n"
+            "  '00112233445566778899AABBCCDDEEFF'\n"
+            "  '0x00,0x11,...,0xFF'"
+        )
     )
     key_group.add_argument(
-        "-K",
-        "--key-file",
-        help="File with key map: device_id -> key (use when specifying a key directory)",
+        "-K", "--key-file",
+        metavar="FILE",
+        help="Path to a key mapping file containing pairs: device_id;key"
+        "The script automatically looks up and uses the key matching the provided --device-id flag argument."
     )
 
     parser.add_argument(
-        "-v",
-        "--app-version",
-        required=True,
-        help="Application version (uint16, decimal or hex)",
+        "-v", "--app-version", required=True,
+        metavar="VER",
+        help="Application version (uint32, decimal or hex, e.g. 0x20250103)"
     )
     parser.add_argument(
-        "-p",
-        "--prev-app-version",
-        required=True,
-        help="Previous application version (uint16, decimal or hex)",
+        "-p", "--prev-app-version", required=True,
+        metavar="VER",
+        help="Previous application version (uint32, decimal or hex, e.g. 0x20241231)"
     )
     parser.add_argument(
-        "-l",
-        "--page-length",
-        default=2048,
-        type=int,
-        help="Page length (default: 2048)",
+        "-l", "--page-length", default=2048, type=int,
+        metavar="BYTES",
+        help="Flash page size in bytes. Defines the size of a Flash memory page in the target microcontroller. (default: 2048)"
     )
 
     args = parser.parse_args(merged_args)
