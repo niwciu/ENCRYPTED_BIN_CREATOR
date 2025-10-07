@@ -45,9 +45,7 @@ class Config:
         print(f" Device ID:           {self.device_id} (0x{self.device_id:X})")
         print(f" Bootloader ID:       {self.bootloader_id} (0x{self.bootloader_id:X})")
         print(f" App version:         {self.app_version} (0x{self.app_version:X})")
-        print(
-            f" Previous app version:{self.prev_app_version} (0x{self.prev_app_version:X})"
-        )
+        print(f" Previous app version:{self.prev_app_version} (0x{self.prev_app_version:X})")
         print(f" Page length:         {self.page_length}")
         # print(f" Key (hex):           {' '.join(f'{b:02X}' for b in self.key)}")
         print(" Key (hex):           Classified")

@@ -24,3 +24,8 @@ dev = [
 
 [project.scripts]
 encrypt-bin = "encrypt_bin.__main__:main"
+
+[tool.black]
+line-length = 160
+target-version = ["py312"]
+skip-string-normalization = true

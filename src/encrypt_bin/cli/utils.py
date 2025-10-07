@@ -10,9 +10,7 @@ def parse_int(value, name, max_bits):
     try:
         val = int(value, 0)
     except ValueError:
-        sys.exit(
-            f"Error: {name} must be a decimal or hexadecimal number (given: {value})"
-        )
+        sys.exit(f"Error: {name} must be a decimal or hexadecimal number (given: {value})")
 
     max_val = (1 << max_bits) - 1
     if not (0 <= val <= max_val):
@@ -30,9 +28,7 @@ def parse_key(value):
     if len(cleaned) == 1 and len(cleaned[0]) > 2:
         hex_str = cleaned[0].replace("0x", "").replace(" ", "")
         try:
-            bytes_list = [
-                int(hex_str[i : i + 2], 16) for i in range(0, len(hex_str), 2)
-            ]
+            bytes_list = [int(hex_str[i : i + 2], 16) for i in range(0, len(hex_str), 2)]
         except Exception:
             sys.exit("Error: key contains invalid hex characters.")
     else:
@@ -60,9 +56,7 @@ def _read_key_file_lines(path: str) -> list[str]:
         sys.exit(f"Error reading key file: {e}")
 
     if st.st_mode & 0o077:
-        print(
-            f"Warning: key file '{path}' has group/other permissions (check file security)."
-        )
+        print(f"Warning: key file '{path}' has group/other permissions (check file security).")
 
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -118,6 +112,4 @@ def find_key_in_file(key_file_path: str, device_id: int) -> bytes:
         # Validate and convert the key
         return parse_key(key_str)
 
-    sys.exit(
-        f"Error: could not find key for device_id {hex(device_id)} in file '{key_file_path}'."
-    )
+    sys.exit(f"Error: could not find key for device_id {hex(device_id)} in file '{key_file_path}'.")
