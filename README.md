@@ -1,7 +1,7 @@
 # 🔒 encrypt-bin: Encrypted BIN File Generator for Embedded Devices
 
 **encrypt-bin** is a lightweight, flexible Python CLI tool for generating encrypted binary firmware files.  
-It supports configuration through parameter files (`requirements.txt`) and AES-128-CBC encryption compatible with Tiny-AES-C.
+It supports configuration through parameter files (`custom_config_name.txt`) and AES-128-CBC encryption compatible with Tiny-AES-C.
 
 This project is part of whole ecosystem that contain this encrypted bin file generator, update tool for embedded devices and custom tiny bootloader (consume less than 4kB of flash).
 
@@ -101,8 +101,8 @@ Use the `-K` / `--key-file` option to specify a key mapping file:
 
 ```
 # device_id ; key
-0x1234;00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
-0x5678;11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF 00
+0x12345678;00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
+0x87654321;11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF 00
 ```
 
 ---

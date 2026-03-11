@@ -11,7 +11,8 @@ license = { text = "MIT" }
 authors = [{ name = "niwciu", email = "niwciu@gmail.com" }]
 requires-python = ">=3.9"
 dependencies = [
-    "pycryptodome>=3.17.0"
+    "pycryptodome>=3.17.0",
+    "PyQt6>=6.0.0"
 ]
 
 [project.optional-dependencies]
@@ -24,6 +25,7 @@ dev = [
 
 [project.scripts]
 encrypt-bin = "encrypt_bin.__main__:main"
+encrypt-bin-gui = "encrypt_bin.gui.main:main"
 
 [tool.black]
 line-length = 160
