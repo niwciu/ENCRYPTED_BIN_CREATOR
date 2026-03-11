@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Narzędzie do tworzenia i przetwarzania plików binarnych dla urządzeń embedded"
 readme = "README.md"
 license = { text = "MIT" }
-authors = [{ name = "Twoje Imię", email = "twoj@email.com" }]
+authors = [{ name = "niwciu", email = "niwciu@gmail.com" }]
 requires-python = ">=3.9"
 dependencies = [
     "pycryptodome>=3.17.0"
