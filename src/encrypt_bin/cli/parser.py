@@ -56,8 +56,16 @@ def merge_args(file_args, cli_args):
     return merged
 
 
-def get_parsed_args():
-    """Parse and validate all CLI arguments."""
+def get_parsed_args(argv=None):
+    """Parse and validate all CLI arguments.
+
+    Parameters
+    ----------
+    argv : list[str] | None
+        Arguments to parse (excluding program name). If ``None`` the values
+        are taken from ``sys.argv`` automatically. This permits programmatic
+        invocation from the GUI.
+    """
 
     base_parser = argparse.ArgumentParser(add_help=False)
     base_parser.add_argument(
@@ -74,7 +82,10 @@ def get_parsed_args():
         ),
     )
 
-    pre_args, remaining = base_parser.parse_known_args()
+    if argv is None:
+        pre_args, remaining = base_parser.parse_known_args()
+    else:
+        pre_args, remaining = base_parser.parse_known_args(argv)
 
     file_args = []
     if pre_args.config:

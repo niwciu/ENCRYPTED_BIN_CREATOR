@@ -160,6 +160,27 @@ def test_get_parsed_args_with_requirements(monkeypatch, tmp_path):
     assert len(args.key) == 16
 
 
+def test_get_parsed_args_accepts_arg_list(tmp_path):
+    """Call parser with explicit argument list instead of relying on sys.argv."""
+    inp = make_bin_file(tmp_path)
+    out = tmp_path / "output.bin"
+    argv = [
+        "-i", str(inp),
+        "-o", str(out),
+        "-d", "0x9876",
+        "-b", "0x20",
+        "-k", "00112233445566778899AABBCCDDEEFF",
+        "-v", "0x1234",
+        "-p", "0x1111",
+    ]
+    args = parser.get_parsed_args(argv)
+    assert args.device_id == 0x9876
+    assert args.bootloader_id == 0x20
+    assert args.page_length == 2048  # default
+    assert isinstance(args.key, bytes)
+    assert len(args.key) == 16
+
+
 def test_get_parsed_args_invalid_input(monkeypatch, tmp_path):
     """Non-existent input file"""
     inp = tmp_path / "missing.bin"

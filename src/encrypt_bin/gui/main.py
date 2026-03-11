@@ -2,13 +2,13 @@
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QFileDialog, QComboBox, QGroupBox, QRadioButton,
-    QButtonGroup, QMessageBox, QTextEdit
+    QLineEdit, QPushButton, QFileDialog, QComboBox, QGroupBox, QMessageBox, QTextEdit
 )
+
 from PyQt6.QtCore import Qt
 import sys
 import os
-from encrypt_bin.cli.parser import get_parsed_args
+from encrypt_bin.cli.parser import get_parsed_args, load_requirements_file
 from encrypt_bin.core.config import Config
 from encrypt_bin.core.builder import generate_bin
 
@@ -66,25 +66,17 @@ class EncryptBinGUI(QMainWindow):
         bootloader_layout.addWidget(self.bootloader_edit)
         layout.addWidget(bootloader_group)
 
-        # Key selection
-        key_group = QGroupBox("Encryption Key")
+        # Key selection (provide either hex key or key file; the alternative field is cleared automatically)
+        key_group = QGroupBox("Encryption Key (hex or file)")
         key_layout = QVBoxLayout(key_group)
-
-        # Radio buttons for key type
-        self.key_radio_group = QButtonGroup(key_group)
-        self.hex_key_radio = QRadioButton("Hex Key")
-        self.file_key_radio = QRadioButton("Key File")
-        self.hex_key_radio.setChecked(True)
-        self.key_radio_group.addButton(self.hex_key_radio)
-        self.key_radio_group.addButton(self.file_key_radio)
-
-        key_layout.addWidget(self.hex_key_radio)
-        key_layout.addWidget(self.file_key_radio)
+        # hint
+        key_layout.addWidget(QLabel("Enter a hex key or choose a key file; the other field will be cleared."))
 
         # Hex key input
         hex_layout = QHBoxLayout()
         self.hex_key_edit = QLineEdit()
         self.hex_key_edit.setPlaceholderText("e.g. 2F 73 08 68 62 2C D9 8A 29 C1 0A B7 3F 26 4D F9")
+        self.hex_key_edit.textChanged.connect(self.clear_key_file)
         hex_layout.addWidget(QLabel("Hex Key:"))
         hex_layout.addWidget(self.hex_key_edit)
         key_layout.addLayout(hex_layout)
@@ -93,18 +85,13 @@ class EncryptBinGUI(QMainWindow):
         file_layout = QHBoxLayout()
         self.key_file_edit = QLineEdit()
         self.key_file_edit.setPlaceholderText("Select key file")
-        self.key_file_edit.setEnabled(False)
+        self.key_file_edit.textChanged.connect(self.clear_hex_key)
         key_file_button = QPushButton("Browse...")
         key_file_button.clicked.connect(self.select_key_file)
-        key_file_button.setEnabled(False)
         file_layout.addWidget(QLabel("Key File:"))
         file_layout.addWidget(self.key_file_edit)
         file_layout.addWidget(key_file_button)
         key_layout.addLayout(file_layout)
-
-        # Connect radio buttons
-        self.hex_key_radio.toggled.connect(self.toggle_key_input)
-        self.file_key_radio.toggled.connect(self.toggle_key_input)
 
         layout.addWidget(key_group)
 
@@ -130,7 +117,9 @@ class EncryptBinGUI(QMainWindow):
         page_group = QGroupBox("Page Length")
         page_layout = QHBoxLayout(page_group)
         self.page_combo = QComboBox()
-        self.page_combo.addItems(["512", "1024", "2048", "4096", "8192", "16384", "32768", "65536"])
+        # common flash page sizes; default 2048
+        self.page_combo.addItems(["512", "1024", "2048", "4096"])
+        self.page_combo.setCurrentText("2048")
         page_layout.addWidget(QLabel("Page Length (bytes):"))
         page_layout.addWidget(self.page_combo)
         layout.addWidget(page_group)
@@ -141,8 +130,11 @@ class EncryptBinGUI(QMainWindow):
         generate_button.clicked.connect(self.generate_binary)
         save_config_button = QPushButton("Save Configuration")
         save_config_button.clicked.connect(self.save_configuration)
+        load_config_button = QPushButton("Load Configuration")
+        load_config_button.clicked.connect(self.load_configuration)
         button_layout.addWidget(generate_button)
         button_layout.addWidget(save_config_button)
+        button_layout.addWidget(load_config_button)
         layout.addLayout(button_layout)
 
         # Log output
@@ -168,13 +160,16 @@ class EncryptBinGUI(QMainWindow):
         if file_path:
             self.key_file_edit.setText(file_path)
 
-    def toggle_key_input(self):
-        if self.hex_key_radio.isChecked():
-            self.hex_key_edit.setEnabled(True)
-            self.key_file_edit.setEnabled(False)
-        else:
-            self.hex_key_edit.setEnabled(False)
-            self.key_file_edit.setEnabled(True)
+    def clear_key_file(self, _):
+        # clear file field when hex key is entered
+        if self.hex_key_edit.text():
+            self.key_file_edit.clear()
+
+    def clear_hex_key(self, _):
+        # clear hex field when key file is selected
+        if self.key_file_edit.text():
+            self.hex_key_edit.clear()
+
 
     def log_message(self, message):
         self.log_text.append(message)
@@ -195,13 +190,14 @@ class EncryptBinGUI(QMainWindow):
             if not self.prev_version_edit.text():
                 raise ValueError("Previous App Version is required")
 
-            if self.hex_key_radio.isChecked():
-                if not self.hex_key_edit.text():
-                    raise ValueError("Hex key is required")
+            # ensure exactly one of key or key file is provided
+            if self.hex_key_edit.text() and self.key_file_edit.text():
+                raise ValueError("Provide either a hex key or a key file, not both")
+            if not self.hex_key_edit.text() and not self.key_file_edit.text():
+                raise ValueError("Either hex key or key file is required")
+            if self.hex_key_edit.text():
                 key_arg = f"-k \"{self.hex_key_edit.text()}\""
             else:
-                if not self.key_file_edit.text():
-                    raise ValueError("Key file is required")
                 key_arg = f"-K \"{self.key_file_edit.text()}\""
 
             # Build command line arguments
@@ -218,7 +214,7 @@ class EncryptBinGUI(QMainWindow):
 
             # Parse arguments
             import shlex
-            parsed_args = get_parsed_args.__wrapped__(shlex.split(' '.join(args)))
+            parsed_args = get_parsed_args(shlex.split(' '.join(args)))
 
             # Create config
             config = Config.from_args(parsed_args)
@@ -261,13 +257,13 @@ class EncryptBinGUI(QMainWindow):
             if not self.prev_version_edit.text():
                 raise ValueError("Previous App Version is required")
 
-            if self.hex_key_radio.isChecked():
-                if not self.hex_key_edit.text():
-                    raise ValueError("Hex key is required")
+            if self.hex_key_edit.text() and self.key_file_edit.text():
+                raise ValueError("Provide either a hex key or a key file, not both")
+            if not self.hex_key_edit.text() and not self.key_file_edit.text():
+                raise ValueError("Either hex key or key file is required")
+            if self.hex_key_edit.text():
                 key_line = f"-k {self.hex_key_edit.text()}"
             else:
-                if not self.key_file_edit.text():
-                    raise ValueError("Key file is required")
                 key_line = f"-K {self.key_file_edit.text()}"
 
             # Get save location
@@ -293,8 +289,36 @@ class EncryptBinGUI(QMainWindow):
             self.log_message(f"Error: {e}")
             QMessageBox.critical(self, "Error", str(e))
 
+    def load_configuration(self):
+        # read file created by save_configuration and fill fields
+        try:
+            path, _ = QFileDialog.getOpenFileName(self, "Load Configuration", "", "Text Files (*.txt);;All Files (*)")
+            if not path:
+                return
+            file_args = load_requirements_file(path)
+            parsed_args = get_parsed_args(file_args)
+            # populate fields from parsed_args
+            self.input_edit.setText(parsed_args.input)
+            self.output_edit.setText(parsed_args.output)
+            self.device_edit.setText(parsed_args.device_id)
+            self.bootloader_edit.setText(parsed_args.bootloader_id)
+            if getattr(parsed_args, 'key_file', None):
+                self.key_file_edit.setText(parsed_args.key_file)
+                self.hex_key_edit.clear()
+            else:
+                self.hex_key_edit.setText(parsed_args.key)
+                self.key_file_edit.clear()
+            self.version_edit.setText(parsed_args.app_version)
+            self.prev_version_edit.setText(parsed_args.prev_app_version)
+            self.page_combo.setCurrentText(str(parsed_args.page_length))
+            self.log_message(f"Configuration loaded from {path}")
+        except Exception as e:
+            self.log_message(f"Error loading configuration: {e}")
+            QMessageBox.critical(self, "Error", str(e))
+
 
 def main():
+
     app = QApplication(sys.argv)
     window = EncryptBinGUI()
     window.show()
