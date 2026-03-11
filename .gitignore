@@ -31,6 +31,8 @@ __pycache__/
 # Pliki build / dystrybucja
 # ========================
 build/
+out/
+release/
 dist/
 wheels/
 *.egg-info/

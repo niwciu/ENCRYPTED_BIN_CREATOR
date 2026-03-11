@@ -1,14 +1,26 @@
 """GUI module for the encrypt-bin application."""
 
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QFileDialog, QComboBox, QGroupBox, QMessageBox, QTextEdit
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QFileDialog,
+    QComboBox,
+    QGroupBox,
+    QMessageBox,
+    QTextEdit,
 )
 
-from PyQt6.QtCore import Qt
+# from PyQt6.QtCore import Qt
 import sys
-import os
-from encrypt_bin.cli.parser import get_parsed_args, load_requirements_file
+
+# import os
+from encrypt_bin.cli.parser import get_parsed_args
 from encrypt_bin.core.config import Config
 from encrypt_bin.core.builder import generate_bin
 
@@ -170,53 +182,72 @@ class EncryptBinGUI(QMainWindow):
         if self.key_file_edit.text():
             self.hex_key_edit.clear()
 
-
     def log_message(self, message):
         self.log_text.append(message)
 
+    def _validate_and_get_params(self):
+        """Validate inputs and return a dictionary of all parameters."""
+        # Required fields
+        fields = {
+            "Input file": self.input_edit.text(),
+            "Output file": self.output_edit.text(),
+            "Device ID": self.device_edit.text(),
+            "Bootloader ID": self.bootloader_edit.text(),
+            "App Version": self.version_edit.text(),
+            "Previous App Version": self.prev_version_edit.text(),
+        }
+
+        for name, value in fields.items():
+            if not value:
+                raise ValueError(f"{name} is required")
+
+        # Key handling
+        hex_key = self.hex_key_edit.text()
+        key_file = self.key_file_edit.text()
+
+        if hex_key and key_file:
+            raise ValueError("Provide either a hex key or a key file, not both")
+        if not hex_key and not key_file:
+            raise ValueError("Either hex key or key file is required")
+
+        key_arg = f"-k \"{hex_key}\"" if hex_key else f"-K \"{key_file}\""
+
+        return {
+            "input": fields["Input file"],
+            "output": fields["Output file"],
+            "device": fields["Device ID"],
+            "bootloader": fields["Bootloader ID"],
+            "version": fields["App Version"],
+            "prev_version": fields["Previous App Version"],
+            "key_arg": key_arg,
+            "page_length": self.page_combo.currentText(),
+        }
+
     def generate_binary(self):
         try:
-            # Validate inputs
-            if not self.input_edit.text():
-                raise ValueError("Input file is required")
-            if not self.output_edit.text():
-                raise ValueError("Output file is required")
-            if not self.device_edit.text():
-                raise ValueError("Device ID is required")
-            if not self.bootloader_edit.text():
-                raise ValueError("Bootloader ID is required")
-            if not self.version_edit.text():
-                raise ValueError("App Version is required")
-            if not self.prev_version_edit.text():
-                raise ValueError("Previous App Version is required")
+            params = self._validate_and_get_params()
 
-            # ensure exactly one of key or key file is provided
-            if self.hex_key_edit.text() and self.key_file_edit.text():
-                raise ValueError("Provide either a hex key or a key file, not both")
-            if not self.hex_key_edit.text() and not self.key_file_edit.text():
-                raise ValueError("Either hex key or key file is required")
-            if self.hex_key_edit.text():
-                key_arg = f"-k \"{self.hex_key_edit.text()}\""
-            else:
-                key_arg = f"-K \"{self.key_file_edit.text()}\""
-
-            # Build command line arguments
-            args = [
-                "-i", self.input_edit.text(),
-                "-o", self.output_edit.text(),
-                "-d", self.device_edit.text(),
-                "-b", self.bootloader_edit.text(),
-                key_arg,
-                "-v", self.version_edit.text(),
-                "-p", self.prev_version_edit.text(),
-                "-l", self.page_combo.currentText()
-            ]
-
-            # Parse arguments
+            # Build command line args
             import shlex
-            parsed_args = get_parsed_args(shlex.split(' '.join(args)))
 
-            # Create config
+            args = [
+                "-i",
+                params["input"],
+                "-o",
+                params["output"],
+                "-d",
+                params["device"],
+                "-b",
+                params["bootloader"],
+                params["key_arg"],
+                "-v",
+                params["version"],
+                "-p",
+                params["prev_version"],
+                "-l",
+                params["page_length"],
+            ]
+            parsed_args = get_parsed_args(shlex.split(' '.join(args)))
             config = Config.from_args(parsed_args)
 
             self.log_message("Parameters loaded successfully:")
@@ -243,44 +274,21 @@ class EncryptBinGUI(QMainWindow):
 
     def save_configuration(self):
         try:
-            # Validate inputs
-            if not self.input_edit.text():
-                raise ValueError("Input file is required")
-            if not self.output_edit.text():
-                raise ValueError("Output file is required")
-            if not self.device_edit.text():
-                raise ValueError("Device ID is required")
-            if not self.bootloader_edit.text():
-                raise ValueError("Bootloader ID is required")
-            if not self.version_edit.text():
-                raise ValueError("App Version is required")
-            if not self.prev_version_edit.text():
-                raise ValueError("Previous App Version is required")
+            params = self._validate_and_get_params()
 
-            if self.hex_key_edit.text() and self.key_file_edit.text():
-                raise ValueError("Provide either a hex key or a key file, not both")
-            if not self.hex_key_edit.text() and not self.key_file_edit.text():
-                raise ValueError("Either hex key or key file is required")
-            if self.hex_key_edit.text():
-                key_line = f"-k {self.hex_key_edit.text()}"
-            else:
-                key_line = f"-K {self.key_file_edit.text()}"
-
-            # Get save location
             config_path, _ = QFileDialog.getSaveFileName(self, "Save Configuration", "", "Text Files (*.txt);;All Files (*)")
             if not config_path:
                 return
 
-            # Write configuration file
-            with open(config_path, 'w') as f:
-                f.write(f'-i "{self.input_edit.text()}"\n')
-                f.write(f'-o "{self.output_edit.text()}"\n')
-                f.write(f'-d "{self.device_edit.text()}"\n')
-                f.write(f'-b "{self.bootloader_edit.text()}"\n')
-                f.write(f'{key_line}\n')
-                f.write(f'-v "{self.version_edit.text()}"\n')
-                f.write(f'-p "{self.prev_version_edit.text()}"\n')
-                f.write(f'-l "{self.page_combo.currentText()}"\n')
+            with open(config_path, "w") as f:
+                f.write(f'-i "{params["input"]}"\n')
+                f.write(f'-o "{params["output"]}"\n')
+                f.write(f'-d "{params["device"]}"\n')
+                f.write(f'-b "{params["bootloader"]}"\n')
+                f.write(f'{params["key_arg"]}\n')
+                f.write(f'-v "{params["version"]}"\n')
+                f.write(f'-p "{params["prev_version"]}"\n')
+                f.write(f'-l "{params["page_length"]}"\n')
 
             self.log_message(f"Configuration saved to {config_path}")
             QMessageBox.information(self, "Success", f"Configuration saved to {config_path}")
@@ -295,11 +303,11 @@ class EncryptBinGUI(QMainWindow):
             path, _ = QFileDialog.getOpenFileName(self, "Load Configuration", "", "Text Files (*.txt);;All Files (*)")
             if not path:
                 return
-            
+
             # Read and fix the config file to handle unquoted paths with spaces
             with open(path, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
-            
+
             fixed_lines = []
             for line in lines:
                 line = line.strip()
@@ -316,13 +324,14 @@ class EncryptBinGUI(QMainWindow):
                     fixed_lines.append(f'{flag} {value}')
                 else:
                     fixed_lines.append(line)
-            
+
             # Write fixed content to a temporary file
             import tempfile
+
             with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
                 temp_file.write('\n'.join(fixed_lines))
                 temp_path = temp_file.name
-            
+
             try:
                 # Use the parser's built-in config loading mechanism
                 parsed_args = get_parsed_args(["-c", temp_path])
@@ -346,8 +355,9 @@ class EncryptBinGUI(QMainWindow):
             finally:
                 # Clean up temp file
                 import os
+
                 os.unlink(temp_path)
-                
+
         except (Exception, SystemExit) as e:
             error_msg = str(e) if isinstance(e, Exception) else "Invalid configuration file format"
             self.log_message(f"Error loading configuration: {error_msg}")
