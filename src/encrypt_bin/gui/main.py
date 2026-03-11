@@ -273,14 +273,14 @@ class EncryptBinGUI(QMainWindow):
 
             # Write configuration file
             with open(config_path, 'w') as f:
-                f.write(f"-i {self.input_edit.text()}\n")
-                f.write(f"-o {self.output_edit.text()}\n")
-                f.write(f"-d {self.device_edit.text()}\n")
-                f.write(f"-b {self.bootloader_edit.text()}\n")
-                f.write(f"{key_line}\n")
-                f.write(f"-v {self.version_edit.text()}\n")
-                f.write(f"-p {self.prev_version_edit.text()}\n")
-                f.write(f"-l {self.page_combo.currentText()}\n")
+                f.write(f'-i "{self.input_edit.text()}"\n')
+                f.write(f'-o "{self.output_edit.text()}"\n')
+                f.write(f'-d "{self.device_edit.text()}"\n')
+                f.write(f'-b "{self.bootloader_edit.text()}"\n')
+                f.write(f'{key_line}\n')
+                f.write(f'-v "{self.version_edit.text()}"\n')
+                f.write(f'-p "{self.prev_version_edit.text()}"\n')
+                f.write(f'-l "{self.page_combo.currentText()}"\n')
 
             self.log_message(f"Configuration saved to {config_path}")
             QMessageBox.information(self, "Success", f"Configuration saved to {config_path}")
@@ -295,26 +295,63 @@ class EncryptBinGUI(QMainWindow):
             path, _ = QFileDialog.getOpenFileName(self, "Load Configuration", "", "Text Files (*.txt);;All Files (*)")
             if not path:
                 return
-            file_args = load_requirements_file(path)
-            parsed_args = get_parsed_args(file_args)
-            # populate fields from parsed_args
-            self.input_edit.setText(parsed_args.input)
-            self.output_edit.setText(parsed_args.output)
-            self.device_edit.setText(parsed_args.device_id)
-            self.bootloader_edit.setText(parsed_args.bootloader_id)
-            if getattr(parsed_args, 'key_file', None):
-                self.key_file_edit.setText(parsed_args.key_file)
-                self.hex_key_edit.clear()
-            else:
-                self.hex_key_edit.setText(parsed_args.key)
-                self.key_file_edit.clear()
-            self.version_edit.setText(parsed_args.app_version)
-            self.prev_version_edit.setText(parsed_args.prev_app_version)
-            self.page_combo.setCurrentText(str(parsed_args.page_length))
-            self.log_message(f"Configuration loaded from {path}")
-        except Exception as e:
-            self.log_message(f"Error loading configuration: {e}")
-            QMessageBox.critical(self, "Error", str(e))
+            
+            # Read and fix the config file to handle unquoted paths with spaces
+            with open(path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            
+            fixed_lines = []
+            for line in lines:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    fixed_lines.append(line)
+                    continue
+                # Split on first space to separate flag from value
+                parts = line.split(' ', 1)
+                if len(parts) == 2:
+                    flag, value = parts
+                    # If value contains spaces and is not already quoted, quote it
+                    if ' ' in value and not (value.startswith('"') and value.endswith('"')):
+                        value = f'"{value}"'
+                    fixed_lines.append(f'{flag} {value}')
+                else:
+                    fixed_lines.append(line)
+            
+            # Write fixed content to a temporary file
+            import tempfile
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+                temp_file.write('\n'.join(fixed_lines))
+                temp_path = temp_file.name
+            
+            try:
+                # Use the parser's built-in config loading mechanism
+                parsed_args = get_parsed_args(["-c", temp_path])
+                # populate fields from parsed_args
+                self.input_edit.setText(parsed_args.input)
+                self.output_edit.setText(parsed_args.output)
+                self.device_edit.setText(hex(parsed_args.device_id))
+                self.bootloader_edit.setText(hex(parsed_args.bootloader_id))
+                if getattr(parsed_args, 'key_file', None):
+                    self.key_file_edit.setText(parsed_args.key_file)
+                    self.hex_key_edit.clear()
+                else:
+                    # Convert bytes key back to hex string
+                    key_hex = ' '.join(f'{b:02X}' for b in parsed_args.key)
+                    self.hex_key_edit.setText(key_hex)
+                    self.key_file_edit.clear()
+                self.version_edit.setText(hex(parsed_args.app_version))
+                self.prev_version_edit.setText(hex(parsed_args.prev_app_version))
+                self.page_combo.setCurrentText(str(parsed_args.page_length))
+                self.log_message(f"Configuration loaded from {path}")
+            finally:
+                # Clean up temp file
+                import os
+                os.unlink(temp_path)
+                
+        except (Exception, SystemExit) as e:
+            error_msg = str(e) if isinstance(e, Exception) else "Invalid configuration file format"
+            self.log_message(f"Error loading configuration: {error_msg}")
+            QMessageBox.critical(self, "Error", f"Failed to load configuration: {error_msg}")
 
 
 def main():
