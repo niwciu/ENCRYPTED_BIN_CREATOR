@@ -1,0 +1,143 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Uruchamiaj tylko przy tagach np. v1.0.2
+  workflow_dispatch: 
+
+jobs:
+  build_ubuntu:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.3'
+
+      - name: Install dependencies & build
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install -r install_scripts/requirements.txt
+          pip install pyinstaller
+          pyinstaller --onefile --name "EncryptBIN" --paths="src" src/encrypt_bin/gui/main.py
+          chmod +x dist/EncryptBIN
+
+      - name: Create Release Package
+        run: |
+          mkdir -p release
+          tar -czvf release/EncryptBIN-linux.tar.gz -C dist EncryptBIN
+          ls -al release
+          
+      - name: Upload Ubuntu artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-build
+          path: release/EncryptBIN-linux.tar.gz
+
+  build_windows:
+    name: Build Windows Binary
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.12.3'
+
+    - name: Install Python dependencies
+      run: |
+        python -m venv .venv
+        .venv\Scripts\pip install --upgrade pip
+        .venv\Scripts\pip install -e ".[dev]"
+
+    - name: Build Windows binary
+      run: |
+        .venv\Scripts\pyinstaller `
+          --onefile `
+          --noconsole `
+          --name "EncryptBIN" `
+          --paths="src" `
+          --icon="images/icon.ico" `
+          src/encrypt_bin/gui/main.py
+    - name: Create Release Package
+      run: |
+        mkdir release
+        Copy-Item -Path "images\icon.ico" -Destination "dist\images"
+        Compress-Archive -Path dist\* -DestinationPath release\EncryptBIN-windows.zip
+
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-build
+        path: release\EncryptBIN-windows.zip
+
+  release:
+    needs: [build_ubuntu, build_windows]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract changelog for tag
+        id: changelog
+        run: |
+          if [[ "${GITHUB_REF}" =~ refs/tags/ ]]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+            echo "Extracted TAG_NAME: $TAG_NAME"
+      
+            CONTENT=$(awk -v tag="$TAG_NAME" '
+              BEGIN { found=0 }
+              $0 ~ "^# +" tag {
+                found=1
+              }
+              found && $0 ~ "^# +v[0-9]+\\.[0-9]+\\.[0-9]+" && $0 !~ tag {
+                exit
+              }
+              found { print }
+            ' CHANGELOG.md)
+      
+            echo "Extracted changelog:"
+            echo "$CONTENT"
+      
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            echo "$CONTENT" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+      
+            echo "release_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "Not a tag release. Skipping changelog extraction."
+            echo "changelog=No changelog found." >> $GITHUB_OUTPUT
+            echo "release_name=Unnamed release" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download Ubuntu artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ubuntu-build
+          path: dist/
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.changelog.outputs.release_name }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          files: |
+            dist/EncryptBIN-linux.tar.gz
+            dist/EncryptBIN-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

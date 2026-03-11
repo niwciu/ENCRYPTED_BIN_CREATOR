@@ -1,7 +1,7 @@
 # 🔒 encrypt-bin: Encrypted BIN File Generator for Embedded Devices
 
 **encrypt-bin** is a lightweight, flexible Python CLI tool for generating encrypted binary firmware files.  
-It supports configuration through parameter files (`requirements.txt`) and AES-128-CBC encryption compatible with Tiny-AES-C.
+It supports configuration through parameter files (`custom_config_name.txt`) and AES-128-CBC encryption compatible with Tiny-AES-C.
 
 This project is part of whole ecosystem that contain this encrypted bin file generator, update tool for embedded devices and custom tiny bootloader (consume less than 4kB of flash).
 
@@ -41,6 +41,36 @@ encrypt-bin/
 ```
 
 ---
+
+## 🖼️ GUI Overlay (Qt6)
+
+A simple graphical interface wraps the CLI tool and exposes all parameters in a form. The GUI is implemented with **PyQt6** and sits on top of the existing command‑line logic: when you click **Generate Binary** the same parser and builder code is invoked under the hood.
+
+### Features
+
+* Select input/output files with a file picker
+* Enter device ID, bootloader ID, application versions, and page length
+* Choose between entering a hex key or selecting a key file (fields are mutually exclusive)
+* Save the current configuration to a text file (compatible with `-r`/`-c` parameter file)
+* Load a previously saved configuration back into the form
+* Log area shows progress and errors
+
+### Launching the GUI
+
+Because the package may not be installed in editable mode, run the GUI directly from source:
+
+```bash
+# activate your project virtualenv first
+source .venv/bin/activate
+python src/encrypt_bin/gui/main.py
+```
+
+Alternatively, add `src` to `PYTHONPATH` and use the module form:
+
+```bash
+PYTHONPATH=src python -m encrypt_bin.gui.main
+```
+
 
 ## ⚙️ Installation
 
@@ -101,8 +131,8 @@ Use the `-K` / `--key-file` option to specify a key mapping file:
 
 ```
 # device_id ; key
-0x1234;00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
-0x5678;11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF 00
+0x12345678;00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
+0x87654321;11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF 00
 ```
 
 ---

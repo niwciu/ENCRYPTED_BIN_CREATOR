@@ -5,27 +5,56 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "encrypt-bin"
 version = "0.1.0"
-description = "Narzędzie do tworzenia i przetwarzania plików binarnych dla urządzeń embedded"
+description = "Tool for creating and processing binary files for embedded devices"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 authors = [{ name = "niwciu", email = "niwciu@gmail.com" }]
 requires-python = ">=3.9"
 dependencies = [
-    "pycryptodome>=3.17.0"
+    "pycryptodome>=3.17.0",
+    "PyQt6>=6.0.0"
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
     "pytest-cov",
+    "pytest-qt",
+    "flake8",
     "black",
-    "flake8"
+    "pyinstaller"
 ]
 
 [project.scripts]
 encrypt-bin = "encrypt_bin.__main__:main"
+encrypt-bin-gui = "encrypt_bin.gui.main:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.black]
 line-length = 160
 target-version = ["py312"]
 skip-string-normalization = true
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | build
+  | dist
+  | __pycache__
+)/
+'''
+
+[tool.flake8]
+max-line-length = 160
+extend-ignore = ["E203", "W503"]
+exclude = [".venv", "build", "dist", "__pycache__"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "--cov=src --cov-report=term-missing"
+testpaths = ["tests"]
